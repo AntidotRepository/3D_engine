@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		5D8EA06E1D15D0B600B9341C /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 5D8EA06D1D15D0B600B9341C /* main.c */; };
+		5D8EA0771D15D49900B9341C /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5D8EA0761D15D49900B9341C /* SDL2.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,6 +26,7 @@
 /* Begin PBXFileReference section */
 		5D8EA06A1D15D0B600B9341C /* 3D_engine */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = 3D_engine; sourceTree = BUILT_PRODUCTS_DIR; };
 		5D8EA06D1D15D0B600B9341C /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		5D8EA0761D15D49900B9341C /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = ../../../../../../Library/Frameworks/SDL2.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,6 +34,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5D8EA0771D15D49900B9341C /* SDL2.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -41,6 +44,7 @@
 		5D8EA0611D15D0B600B9341C = {
 			isa = PBXGroup;
 			children = (
+				5D8EA0761D15D49900B9341C /* SDL2.framework */,
 				5D8EA06C1D15D0B600B9341C /* 3D_engine */,
 				5D8EA06B1D15D0B600B9341C /* Products */,
 			);
@@ -209,6 +213,10 @@
 		5D8EA0721D15D0B600B9341C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -216,6 +224,10 @@
 		5D8EA0731D15D0B600B9341C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
