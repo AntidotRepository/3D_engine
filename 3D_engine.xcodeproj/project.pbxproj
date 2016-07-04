@@ -7,25 +7,27 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5D8EA06E1D15D0B600B9341C /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 5D8EA06D1D15D0B600B9341C /* main.c */; };
+		5D51BE071D16987500851417 /* 3D_engine in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5D8EA06A1D15D0B600B9341C /* 3D_engine */; };
+		5D51BE091D1698DD00851417 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 5D51BE081D1698DD00851417 /* main.c */; };
 		5D8EA0771D15D49900B9341C /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5D8EA0761D15D49900B9341C /* SDL2.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		5D8EA0681D15D0B600B9341C /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
+			buildActionMask = 12;
+			dstPath = /Users/ducept/Documents/Programmation/3D_engine/3D_engine/debug;
 			dstSubfolderSpec = 0;
 			files = (
+				5D51BE071D16987500851417 /* 3D_engine in CopyFiles */,
 			);
-			runOnlyForDeploymentPostprocessing = 1;
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		5D51BE081D1698DD00851417 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = src/main.c; sourceTree = SOURCE_ROOT; };
 		5D8EA06A1D15D0B600B9341C /* 3D_engine */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = 3D_engine; sourceTree = BUILT_PRODUCTS_DIR; };
-		5D8EA06D1D15D0B600B9341C /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		5D8EA0761D15D49900B9341C /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = ../../../../../../Library/Frameworks/SDL2.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -61,7 +63,7 @@
 		5D8EA06C1D15D0B600B9341C /* 3D_engine */ = {
 			isa = PBXGroup;
 			children = (
-				5D8EA06D1D15D0B600B9341C /* main.c */,
+				5D51BE081D1698DD00851417 /* main.c */,
 			);
 			path = 3D_engine;
 			sourceTree = "<group>";
@@ -122,7 +124,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5D8EA06E1D15D0B600B9341C /* main.c in Sources */,
+				5D51BE091D1698DD00851417 /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -251,6 +253,7 @@
 				5D8EA0731D15D0B600B9341C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
