@@ -4,7 +4,7 @@
 
 #define SCREEN_WIDTH            640                                             // Window width
 #define SCREEN_HEIGHT           480                                             // Window heigh
-#define FRAME_RATE              50
+#define FRAME_RATE              10
 #define DEG_TO_RAD              0.01745329
 
 #define CONVERT_POS_X(pos_X)    pos_X+SCREEN_WIDTH/2
@@ -15,9 +15,11 @@
 typedef struct mPoint mPoint;
 struct mPoint
 {
-    float x;
-    float y;
-    float z;
+    float x_3D;
+    float y_3D;
+    float z_3D;
+    float x_2D;
+    float y_2D;
     char display;
     float distance_to_eye;
 };
@@ -29,14 +31,13 @@ struct mPoint
  *  \brief      Draw a triangle
  *  \param[in]  Coordinates of points of triangle
  */
-void drawTriangle(SDL_Renderer *renderer, int x1, int y1, int x2, int y2, int x3, int y3)
+void draw2DTriangle(SDL_Renderer *renderer, int x1, int y1, int x2, int y2, int x3, int y3)
 {
     int xL, xC, xR, yL, yC, yR = 0;
     //printf("x1=%d, y1=%d, x2=%d, y2=%d, x3=%d, y3=%d\n", x1, y1, x2, y2, x3, y3);
     // We sort points from left to right
     if((x1 <= x2) && (x1 <= x3))
     {
-        printf("cas 1\n");
         xL = x1;
         yL = y1;
         if(x2 < x3)
@@ -56,7 +57,6 @@ void drawTriangle(SDL_Renderer *renderer, int x1, int y1, int x2, int y2, int x3
     }
     else if((x2 <= x3) && (x2 <= x1))
     {
-        printf("cas 2\n");
         xL = x2;
         yL = y2;
         if(x1 < x3)
@@ -76,7 +76,6 @@ void drawTriangle(SDL_Renderer *renderer, int x1, int y1, int x2, int y2, int x3
     }
     else
     {
-        printf("cas 3\n");
         xL = x3;
         yL = y3;
         if(x2 < x1)
@@ -132,44 +131,46 @@ void logSDLError(char *msg)
 
 int main(int argc, char **argv)
 {
-    int x_screen[8],y_screen[8];
+    //int tabPointRotY[i].x_2D[8],tabPointRotY[i].y_2D[8];
     int angle = 0;
+    float zBuffer[SCREEN_WIDTH][SCREEN_HEIGHT] = {{0}, {0}};
+    
     mPoint tabPoint[8];
     mPoint tabPointRotX[8];
     mPoint tabPointRotY[8];
     mPoint tabPointRotZ[8];
     
-    tabPoint[0].x =  50;
-    tabPoint[0].y =  50;
-    tabPoint[0].z = -50;
+    tabPoint[0].x_3D =  50;
+    tabPoint[0].y_3D =  50;
+    tabPoint[0].z_3D = -50;
     
-    tabPoint[1].x = -50;
-    tabPoint[1].y =  50;
-    tabPoint[1].z = -50;
+    tabPoint[1].x_3D = -50;
+    tabPoint[1].y_3D =  50;
+    tabPoint[1].z_3D = -50;
     
-    tabPoint[2].x = -50;
-    tabPoint[2].y = -50;
-    tabPoint[2].z = -50;
+    tabPoint[2].x_3D = -50;
+    tabPoint[2].y_3D = -50;
+    tabPoint[2].z_3D = -50;
     
-    tabPoint[3].x =  50;
-    tabPoint[3].y = -50;
-    tabPoint[3].z = -50;
+    tabPoint[3].x_3D =  50;
+    tabPoint[3].y_3D = -50;
+    tabPoint[3].z_3D = -50;
     
-    tabPoint[4].x =  50;
-    tabPoint[4].y =  50;
-    tabPoint[4].z =  50;
+    tabPoint[4].x_3D =  50;
+    tabPoint[4].y_3D =  50;
+    tabPoint[4].z_3D =  50;
     
-    tabPoint[5].x = -50;
-    tabPoint[5].y =  50;
-    tabPoint[5].z =  50;
+    tabPoint[5].x_3D = -50;
+    tabPoint[5].y_3D =  50;
+    tabPoint[5].z_3D =  50;
     
-    tabPoint[6].x = -50;
-    tabPoint[6].y = -50;
-    tabPoint[6].z =  50;
+    tabPoint[6].x_3D = -50;
+    tabPoint[6].y_3D = -50;
+    tabPoint[6].z_3D =  50;
     
-    tabPoint[7].x =  50;
-    tabPoint[7].y = -50;
-    tabPoint[7].z =  50;
+    tabPoint[7].x_3D =  50;
+    tabPoint[7].y_3D = -50;
+    tabPoint[7].z_3D =  50;
     
     
     if(SDL_Init(SDL_INIT_VIDEO) < 0)                                            // SDL Initialization
@@ -222,22 +223,23 @@ int main(int argc, char **argv)
         
         for(int i = 0; i<8; i++)
         {
-            tabPointRotX[i].x = tabPoint[i].x*cos(angle%360*DEG_TO_RAD)-tabPoint[i].y*sin(angle%360*DEG_TO_RAD);
-            tabPointRotX[i].y = tabPoint[i].x*sin(angle%360*DEG_TO_RAD)+tabPoint[i].y*cos(angle%360*DEG_TO_RAD);
-            tabPointRotX[i].z = tabPoint[i].z;
+            tabPointRotX[i].x_3D = tabPoint[i].x_3D*cos(angle%360*DEG_TO_RAD)-tabPoint[i].y_3D*sin(angle%360*DEG_TO_RAD);
+            tabPointRotX[i].y_3D = tabPoint[i].x_3D*sin(angle%360*DEG_TO_RAD)+tabPoint[i].y_3D*cos(angle%360*DEG_TO_RAD);
+            tabPointRotX[i].z_3D = tabPoint[i].z_3D;
         }
         
         for(int i = 0; i<8; i++)
         {
-            tabPointRotY[i].x = tabPointRotX[i].x;
-            tabPointRotY[i].y = tabPointRotX[i].y*cos(angle%360*DEG_TO_RAD)-tabPointRotX[i].z*sin(angle%360*DEG_TO_RAD);
-            tabPointRotY[i].z = tabPointRotX[i].y*sin(angle%360*DEG_TO_RAD)+tabPointRotX[i].z*cos(angle%360*DEG_TO_RAD);
+            tabPointRotY[i].x_3D = tabPointRotX[i].x_3D;
+            tabPointRotY[i].y_3D = tabPointRotX[i].y_3D*cos(angle%360*DEG_TO_RAD)-tabPointRotX[i].z_3D*sin(angle%360*DEG_TO_RAD);
+            tabPointRotY[i].z_3D = tabPointRotX[i].y_3D*sin(angle%360*DEG_TO_RAD)+tabPointRotX[i].z_3D*cos(angle%360*DEG_TO_RAD);
         }
         
         for(int i = 0; i<8; i++)
         {
-            x_screen[i] = CONVERT_POS_X((USER_DISTANCE*tabPointRotY[i].x)/(USER_DISTANCE+tabPointRotY[i].z));
-            y_screen[i] = CONVERT_POS_Y((USER_DISTANCE*tabPointRotY[i].y)/(USER_DISTANCE+tabPointRotY[i].z));
+            tabPointRotY[i].distance_to_eye = sqrtf(pow(tabPointRotY[i].x_3D, 2)+pow(USER_DISTANCE - tabPointRotY[i].y_3D, 2)+pow(tabPointRotY[i].z_3D, 2));
+            tabPointRotY[i].x_2D = CONVERT_POS_X((USER_DISTANCE*tabPointRotY[i].x_3D)/(USER_DISTANCE+tabPointRotY[i].z_3D));
+            tabPointRotY[i].y_2D = CONVERT_POS_Y((USER_DISTANCE*tabPointRotY[i].y_3D)/(USER_DISTANCE+tabPointRotY[i].z_3D));
         }
         SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);                        // We set the background color (white)
         SDL_RenderClear(ren);
@@ -250,28 +252,28 @@ int main(int argc, char **argv)
         SDL_RenderDrawLine(ren, SCREEN_WIDTH-1, SCREEN_HEIGHT-1, 0, SCREEN_HEIGHT-1);
         SDL_RenderDrawLine(ren, 0, SCREEN_HEIGHT-1, 0, 0);
         
-        drawTriangle(ren, x_screen[0], y_screen[0], x_screen[1], y_screen[1], x_screen[2], y_screen[2]);
-        drawTriangle(ren, x_screen[2], y_screen[2], x_screen[3], y_screen[3], x_screen[0], y_screen[0]);
+        draw2DTriangle(ren, tabPointRotY[0].x_2D, tabPointRotY[0].y_2D, tabPointRotY[1].x_2D, tabPointRotY[1].y_2D, tabPointRotY[2].x_2D, tabPointRotY[2].y_2D);
+        draw2DTriangle(ren, tabPointRotY[2].x_2D, tabPointRotY[2].y_2D, tabPointRotY[3].x_2D, tabPointRotY[3].y_2D, tabPointRotY[0].x_2D, tabPointRotY[0].y_2D);
         
         SDL_SetRenderDrawColor(ren, 50, 50, 50, 255);                              // We will draw in black
-        drawTriangle(ren, x_screen[4], y_screen[4], x_screen[5], y_screen[5], x_screen[6], y_screen[6]);
-        drawTriangle(ren, x_screen[6], y_screen[6], x_screen[7], y_screen[7], x_screen[4], y_screen[4]);
+        draw2DTriangle(ren, tabPointRotY[4].x_2D, tabPointRotY[4].y_2D, tabPointRotY[5].x_2D, tabPointRotY[5].y_2D, tabPointRotY[6].x_2D, tabPointRotY[6].y_2D);
+        draw2DTriangle(ren, tabPointRotY[6].x_2D, tabPointRotY[6].y_2D, tabPointRotY[7].x_2D, tabPointRotY[7].y_2D, tabPointRotY[4].x_2D, tabPointRotY[4].y_2D);
         
         SDL_SetRenderDrawColor(ren, 100, 100, 100, 255);                              // We will draw in black
-        drawTriangle(ren, x_screen[5], y_screen[5], x_screen[6], y_screen[6], x_screen[2], y_screen[2]);
-        drawTriangle(ren, x_screen[2], y_screen[2], x_screen[1], y_screen[1], x_screen[5], y_screen[5]);
+        draw2DTriangle(ren, tabPointRotY[5].x_2D, tabPointRotY[5].y_2D, tabPointRotY[6].x_2D, tabPointRotY[6].y_2D, tabPointRotY[2].x_2D, tabPointRotY[2].y_2D);
+        draw2DTriangle(ren, tabPointRotY[2].x_2D, tabPointRotY[2].y_2D, tabPointRotY[1].x_2D, tabPointRotY[1].y_2D, tabPointRotY[5].x_2D, tabPointRotY[5].y_2D);
         
         SDL_SetRenderDrawColor(ren, 150, 150, 150, 255);                              // We will draw in black
-        drawTriangle(ren, x_screen[3], y_screen[3], x_screen[2], y_screen[2], x_screen[6], y_screen[6]);
-        drawTriangle(ren, x_screen[3], y_screen[3], x_screen[6], y_screen[6], x_screen[7], y_screen[7]);
+        draw2DTriangle(ren, tabPointRotY[3].x_2D, tabPointRotY[3].y_2D, tabPointRotY[2].x_2D, tabPointRotY[2].y_2D, tabPointRotY[6].x_2D, tabPointRotY[6].y_2D);
+        draw2DTriangle(ren, tabPointRotY[3].x_2D, tabPointRotY[3].y_2D, tabPointRotY[6].x_2D, tabPointRotY[6].y_2D, tabPointRotY[7].x_2D, tabPointRotY[7].y_2D);
         
         SDL_SetRenderDrawColor(ren, 200, 200, 200, 255);                              // We will draw in black
-        drawTriangle(ren, x_screen[3], y_screen[3], x_screen[0], y_screen[0], x_screen[7], y_screen[7]);
-        drawTriangle(ren, x_screen[0], y_screen[0], x_screen[4], y_screen[4], x_screen[7], y_screen[7]);
+        draw2DTriangle(ren, tabPointRotY[3].x_2D, tabPointRotY[3].y_2D, tabPointRotY[0].x_2D, tabPointRotY[0].y_2D, tabPointRotY[7].x_2D, tabPointRotY[7].y_2D);
+        draw2DTriangle(ren, tabPointRotY[0].x_2D, tabPointRotY[0].y_2D, tabPointRotY[4].x_2D, tabPointRotY[4].y_2D, tabPointRotY[7].x_2D, tabPointRotY[7].y_2D);
         
         SDL_SetRenderDrawColor(ren, 225, 225, 225, 255);                              // We will draw in black
-        drawTriangle(ren, x_screen[5], y_screen[5], x_screen[4], y_screen[4], x_screen[0], y_screen[0]);
-        drawTriangle(ren, x_screen[0], y_screen[0], x_screen[1], y_screen[1], x_screen[5], y_screen[5]);
+        draw2DTriangle(ren, tabPointRotY[5].x_2D, tabPointRotY[5].y_2D, tabPointRotY[4].x_2D, tabPointRotY[4].y_2D, tabPointRotY[0].x_2D, tabPointRotY[0].y_2D);
+        draw2DTriangle(ren, tabPointRotY[0].x_2D, tabPointRotY[0].y_2D, tabPointRotY[1].x_2D, tabPointRotY[1].y_2D, tabPointRotY[5].x_2D, tabPointRotY[5].y_2D);
         
         SDL_RenderPresent(ren);
         SDL_Delay(1000/FRAME_RATE);
