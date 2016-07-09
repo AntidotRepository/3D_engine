@@ -4,7 +4,7 @@
 
 #define SCREEN_WIDTH            640                                             // Window width
 #define SCREEN_HEIGHT           480                                             // Window heigh
-#define FRAME_RATE              50
+#define FRAME_RATE              20
 #define DEG_TO_RAD              0.01745329
 
 #define CONVERT_POS_X(pos_X)    pos_X+SCREEN_WIDTH/2
@@ -12,8 +12,8 @@
 
 #define USER_DISTANCE           300
 
-typedef struct mPoint mPoint;
-struct mPoint
+typedef struct m3DPoint m3DPoint;
+struct m3DPoint
 {
     float x_3D;
     float y_3D;
@@ -21,7 +21,7 @@ struct mPoint
     float x_2D;
     float y_2D;
     char display;
-    float distance_to_eye;
+    float depth;
 };
 
 //#error http://www.willusher.io/sdl2%20tutorials/2013/08/18/lesson-3-sdl-extension-libraries
@@ -31,9 +31,11 @@ struct mPoint
  *  \brief      Draw a triangle
  *  \param[in]  Coordinates of points of triangle
  */
-void draw2DTriangle(SDL_Renderer *renderer, mPoint p1, mPoint p2, mPoint p3)
+void draw2DTriangle(m3DPoint *canevas, int w, int h, m3DPoint p1, m3DPoint p2, m3DPoint p3)
 {
-    mPoint Left, Center, Right;
+    m3DPoint Left, Center, Right;
+    int i = 0;
+    int j = 0;
     
     // We sort points from left to right
     if((p1.x_2D <= p2.x_2D) && (p1.x_2D <= p3.x_2D))
@@ -89,7 +91,8 @@ void draw2DTriangle(SDL_Renderer *renderer, mPoint p1, mPoint p2, mPoint p3)
         coef3 = ((float)Right.y_2D-(float)Center.y_2D)/((float)Right.x_2D-(float)Center.x_2D);
     
     // We start to fill it
-    for (int i = 0; i<(Right.x_2D-Left.x_2D); i++)
+    int toDelete = 0;
+    for (i = 0; i<(Right.x_2D-Left.x_2D); i++)
     {
         int y1 = 0;
         int y2 = 0;
@@ -110,16 +113,27 @@ void draw2DTriangle(SDL_Renderer *renderer, mPoint p1, mPoint p2, mPoint p3)
             y1 = y2;
             y2 = ytemp;
         }
-        for(int j = y1; j<y2; j++)                                              // Draw the whole line
+        for(j = y1; j<y2; j++)                                                  // Draw the whole line
         {
+            toDelete ++;
             // ToDo
             // Calculer distance à Left
-            //screen[i+(int)Left.x_2D][j].x_3D = ;
             // Calculer distance à Center
             // Calculer distance à Right
             // Appliquer la fraction de la distance à chaque point sur son poids
-            //screen[i+Left.x_2D][j].distance_to_eye = 1.0;//sqrt(pow(,2));
-            SDL_RenderDrawPoint(renderer, i+Left.x_2D, j);
+            //screen[i+Left.x_2D][j].depth = 1.0;//sqrt(pow(,2));
+            //SDL_RenderDrawPoint(renderer, i+Left.x_2D, j);
+            //canevas[i+(int)Left.x_2D][j] = (int)1;
+            // To avoid trying accessing out of limit of the table:
+            if(i<0)
+                i = 0;
+            if(i>w)
+                i = w-1;
+            if(j<0)
+                j = 0;
+            if(j>h)
+                j = h-1;
+            canevas[j*h+i+(int)Left.x_2D].depth = 1;
         }
     }
 }
@@ -138,12 +152,13 @@ void logSDLError(char *msg)
 int main(int argc, char **argv)
 {
     int angle = 0;
-    float zBuffer[SCREEN_WIDTH][SCREEN_HEIGHT] = {{0}, {0}};
+    struct m3DPoint *canevas = malloc(SCREEN_WIDTH*SCREEN_HEIGHT*sizeof(struct m3DPoint));  // Have to use dynamic allocation 'cause of to big table!
     
-    mPoint tabPoint[8];
-    mPoint tabPointRotX[8];
-    mPoint tabPointRotY[8];
-    mPoint tabPointRotZ[8];
+
+    m3DPoint tabPoint[8];
+    m3DPoint tabPointRotX[8];
+    m3DPoint tabPointRotY[8];
+    m3DPoint tabPointRotZ[8];
     
     tabPoint[0].x_3D =  50;
     tabPoint[0].y_3D =  50;
@@ -242,7 +257,7 @@ int main(int argc, char **argv)
         
         for(int i = 0; i<8; i++)
         {
-            tabPointRotY[i].distance_to_eye = sqrtf(pow(tabPointRotY[i].x_3D, 2)+pow(USER_DISTANCE - tabPointRotY[i].y_3D, 2)+pow(tabPointRotY[i].z_3D, 2));
+            tabPointRotY[i].depth = sqrtf(pow(tabPointRotY[i].x_3D, 2)+pow(USER_DISTANCE - tabPointRotY[i].y_3D, 2)+pow(tabPointRotY[i].z_3D, 2));
             tabPointRotY[i].x_2D = CONVERT_POS_X((USER_DISTANCE*tabPointRotY[i].x_3D)/(USER_DISTANCE+tabPointRotY[i].z_3D));
             tabPointRotY[i].y_2D = CONVERT_POS_Y((USER_DISTANCE*tabPointRotY[i].y_3D)/(USER_DISTANCE+tabPointRotY[i].z_3D));
         }
@@ -257,29 +272,35 @@ int main(int argc, char **argv)
         SDL_RenderDrawLine(ren, SCREEN_WIDTH-1, SCREEN_HEIGHT-1, 0, SCREEN_HEIGHT-1);
         SDL_RenderDrawLine(ren, 0, SCREEN_HEIGHT-1, 0, 0);
         
-        draw2DTriangle(ren, tabPointRotY[0], tabPointRotY[1], tabPointRotY[2]);
-        draw2DTriangle(ren, tabPointRotY[2], tabPointRotY[3], tabPointRotY[0]);
+        draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, tabPointRotY[0], tabPointRotY[1], tabPointRotY[2]);
+        draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, tabPointRotY[2], tabPointRotY[3], tabPointRotY[0]);
         
-        SDL_SetRenderDrawColor(ren, 50, 50, 50, 255);                              // We will draw in black
-        draw2DTriangle(ren, tabPointRotY[4], tabPointRotY[5], tabPointRotY[6]);
-        draw2DTriangle(ren, tabPointRotY[6], tabPointRotY[7], tabPointRotY[4]);
+        draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, tabPointRotY[4], tabPointRotY[5], tabPointRotY[6]);
+        draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, tabPointRotY[6], tabPointRotY[7], tabPointRotY[4]);
         
-        SDL_SetRenderDrawColor(ren, 100, 100, 100, 255);                              // We will draw in black
-        draw2DTriangle(ren, tabPointRotY[5], tabPointRotY[6], tabPointRotY[2]);
-        draw2DTriangle(ren, tabPointRotY[2], tabPointRotY[1], tabPointRotY[5]);
+        draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, tabPointRotY[5], tabPointRotY[6], tabPointRotY[2]);
+        draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, tabPointRotY[2], tabPointRotY[1], tabPointRotY[5]);
         
-        SDL_SetRenderDrawColor(ren, 150, 150, 150, 255);                              // We will draw in black
-        draw2DTriangle(ren, tabPointRotY[3], tabPointRotY[2], tabPointRotY[6]);
-        draw2DTriangle(ren, tabPointRotY[3], tabPointRotY[6], tabPointRotY[7]);
+        draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, tabPointRotY[3], tabPointRotY[2], tabPointRotY[6]);
+        draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, tabPointRotY[3], tabPointRotY[6], tabPointRotY[7]);
         
-        SDL_SetRenderDrawColor(ren, 200, 200, 200, 255);                              // We will draw in black
-        draw2DTriangle(ren, tabPointRotY[3], tabPointRotY[0], tabPointRotY[7]);
-        draw2DTriangle(ren, tabPointRotY[0], tabPointRotY[4], tabPointRotY[7]);
+        draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, tabPointRotY[3], tabPointRotY[0], tabPointRotY[7]);
+        draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, tabPointRotY[0], tabPointRotY[4], tabPointRotY[7]);
         
-        SDL_SetRenderDrawColor(ren, 225, 225, 225, 255);                              // We will draw in black
-        draw2DTriangle(ren, tabPointRotY[5], tabPointRotY[4], tabPointRotY[0]);
-        draw2DTriangle(ren, tabPointRotY[0], tabPointRotY[1], tabPointRotY[5]);
-        
+        draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, tabPointRotY[5], tabPointRotY[4], tabPointRotY[0]);
+        draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, tabPointRotY[0], tabPointRotY[1], tabPointRotY[5]);
+ 
+        for(int i = 0; i<SCREEN_WIDTH; i++)
+        {
+            for(int j = 0; j<SCREEN_HEIGHT; j++)
+            {
+                if(canevas[j*SCREEN_HEIGHT+i].depth == 1)
+                {
+                    SDL_RenderDrawPoint(ren, i, j);
+                    canevas[j*SCREEN_HEIGHT+i].depth = 0;                       // We have displayed the point. Clear it!
+                }
+            }
+        }
         SDL_RenderPresent(ren);
         SDL_Delay(1000/FRAME_RATE);
     }
