@@ -94,12 +94,26 @@ void draw2DTriangle(m3DPoint *canevas, int w, int h, plan *p)
     
     // We calculate coef of each side of the triangle
     float coef1 = 0.0, coef2 = 0.0, coef3 = 0.0;
+    float coef1_depth = 0.0, coef2_depth = 0.0, coef3_depth = 0.0;
+    int L = 0;
     if(Center->x_2D != Left->x_2D)
+    {
         coef1 = ((float)Center->y_2D-(float)Left->y_2D)/((float)Center->x_2D-(float)Left->x_2D);
+        L = sqrt(pow(Center->x_3D-Left->x_3D, 2)+pow(Center->y_3D-Left->y_3D, 2)+pow(Center->z_3D-Left->z_3D, 2));
+        coef1_depth = ((float)Center->depth - (float)Left->depth)/L;
+    }
     if(Right->x_2D != Left->x_2D)
+    {
         coef2 = ((float)Right->y_2D-(float)Left->y_2D)/((float)Right->x_2D-(float)Left->x_2D);
+        L = sqrt(pow(Right->x_3D-Left->x_3D, 2)+pow(Right->y_3D-Left->y_3D, 2)+pow(Right->z_3D-Left->z_3D, 2));
+        coef2_depth = ((float)Right->depth - (float)Left->depth)/L;
+    }
     if(Right->x_2D != Center->x_2D)
+    {
         coef3 = ((float)Right->y_2D-(float)Center->y_2D)/((float)Right->x_2D-(float)Center->x_2D);
+        L = sqrt(pow(Right->x_3D-Center->x_3D, 2)+pow(Right->y_3D-Center->y_3D, 2)+pow(Right->z_3D-Center->z_3D, 2));
+        coef3_depth = ((float)Right->depth - (float)Center->depth)/L;
+    }
     
     // We start to fill it
     for (i = 0; i<(Right->x_2D-Left->x_2D); i++)
@@ -134,7 +148,8 @@ void draw2DTriangle(m3DPoint *canevas, int w, int h, plan *p)
                 j = 0;
             if(j>h)
                 j = h-1;
-            canevas[j*h+i+(int)Left->x_2D].depth = 1;
+            canevas[j*h+i+(int)Left->x_2D].depth = Left->depth+coef1_depth*(j-y1);
+            //printf("depth = %f\n", canevas[j*h+i+(int)Left->x_2D].depth);
         }
     }
 }
@@ -366,11 +381,14 @@ int main(int argc, char **argv)
         {
             for(int j = 0; j<SCREEN_HEIGHT; j++)
             {
-                if(canevas[j*SCREEN_HEIGHT+i].depth == 1)
-                {
-                    SDL_RenderDrawPoint(ren, i, j);
-                    canevas[j*SCREEN_HEIGHT+i].depth = 0;                       // We have displayed the point. Clear it!
-                }
+               if(canevas[j*SCREEN_HEIGHT+i].depth != 0)
+               {
+                   int color = (int)((float)(canevas[j*SCREEN_HEIGHT+i].depth/500)*255);
+                   SDL_SetRenderDrawColor(ren, color, color, color, 255);                              // We will draw in black
+                   //printf("color: %d\n", color);
+                   SDL_RenderDrawPoint(ren, i, j);
+                   canevas[j*SCREEN_HEIGHT+i].depth = 0;                       // We have displayed the point. Clear it!
+               }
             }
         }
         SDL_RenderPresent(ren);
