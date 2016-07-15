@@ -1,10 +1,11 @@
 #include <SDL2/SDL.h>
+#include <SDL2_ttf/SDL_ttf.h>
 #include <stdio.h>
 #include <stdbool.h>
 
 #define SCREEN_WIDTH            640                                             // Window width
 #define SCREEN_HEIGHT           480                                             // Window heigh
-#define FRAME_RATE              20
+#define FRAME_RATE              40
 #define DEG_TO_RAD              0.01745329
 
 #define CONVERT_POS_X(pos_X)    pos_X+SCREEN_WIDTH/2
@@ -118,26 +119,40 @@ void draw2DTriangle(m3DPoint *canevas, int w, int h, plan *p)
     // We start to fill it
     for (i = 0; i<(Right->x_2D-Left->x_2D); i++)
     {
-        int y1 = 0;
-        int y2 = 0;
-        int ytemp = 0;
+        m3DPoint y1;
+        m3DPoint y2;
+        m3DPoint ytemp;
         
-        y1 = (int)((double)(coef2*i))+Left->y_2D;                                // Calculate the beginning of the line
+        y1.y_2D = (int)((double)(coef2*i))+Left->y_2D;                                // Calculate the beginning of the line
+        y1.depth = Left->depth+coef2_depth*(j-y1.y_2D);
+        canevas[(int)(y1.y_2D)*h+i+(int)Left->x_2D].depth = y1.depth;
+        
         if(i <= Center->x_2D-Left->x_2D)
         {
-            y2 = (int)((double)(coef1*i)+Left->y_2D);                            // Calculate the end of the line for the first part
+            y2.y_2D = (int)((double)(coef1*i)+Left->y_2D);                            // Calculate the end of the line for the first part
+            if(y1.y_2D >= y2.y_2D)
+            {
+                ytemp = y1;
+                y1 = y2;
+                y2 = ytemp;
+            }
+            for(j = y1.y_2D; j<y2.y_2D; j++)
+                canevas[j*h+i+(int)Left->x_2D].depth = Left->depth+coef1_depth*(j-y1.y_2D);
         }
         else
         {
-            y2 = (int)((double)(coef3*(i-Center->x_2D+Left->x_2D)+Center->y_2D));// Calculate the end of the line for the second part
+            y2.y_2D = (int)((double)(coef3*(i-Center->x_2D+Left->x_2D)+Center->y_2D));// Calculate the end of the line for the second part
+            if(y1.y_2D >= y2.y_2D)
+            {
+                ytemp = y1;
+                y1 = y2;
+                y2 = ytemp;
+            }
+            for(j = y1.y_2D; j<y2.y_2D; j++)
+                canevas[j*h+i+(int)Left->x_2D].depth = Left->depth+coef3_depth*(j-y1.y_2D);
         }
-        if(y1 >= y2)
-        {
-            ytemp = y1;
-            y1 = y2;
-            y2 = ytemp;
-        }
-        for(j = y1; j<y2; j++)                                                  // Draw the whole line
+        
+       /* for(j = y1; j<y2; j++)                                                  // Draw the whole line
         {
             // To avoid trying accessing out of limit of the table:
             if(i<0)
@@ -150,7 +165,7 @@ void draw2DTriangle(m3DPoint *canevas, int w, int h, plan *p)
                 j = h-1;
             canevas[j*h+i+(int)Left->x_2D].depth = Left->depth+coef1_depth*(j-y1);
             //printf("depth = %f\n", canevas[j*h+i+(int)Left->x_2D].depth);
-        }
+        }*/
     }
 }
 
@@ -176,7 +191,7 @@ int main(int argc, char **argv)
 {
     int angle = 0;
     struct m3DPoint *canevas = malloc(SCREEN_WIDTH*SCREEN_HEIGHT*sizeof(struct m3DPoint));  // Have to use dynamic allocation 'cause of to big table!
-    
+    TTF_Font *police = NULL;
 
     m3DPoint tabPoint[8];
     
@@ -294,6 +309,22 @@ int main(int argc, char **argv)
         return -1;
     }
     
+    if(TTF_Init() == -1)
+    {
+        logSDLError("TTF_Init");
+        SDL_Quit();
+        return -1;
+    }
+    
+    police = TTF_OpenFont("res/arial.ttf", 150);
+    if(police == NULL)
+    {
+        logSDLError("TTF_OpenFont");
+        SDL_Quit();
+        return -1;
+    }
+    SDL_Color black = {0, 0, 0};
+    
     SDL_Window *win = SDL_CreateWindow("3D_engine", SDL_WINDOWPOS_UNDEFINED,    // Create a new window
                                        SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH,
                                        SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
@@ -315,19 +346,21 @@ int main(int argc, char **argv)
         return 1;
     }
     
-    SDL_Surface *bmp = SDL_LoadBMP("res/image.bmp");                            // Load a surface
-    if(bmp == NULL)                                                             // If surface has not been loaded
+    SDL_Surface *Surf_coord_pt[8];
+    SDL_Rect Rect_coord_pt[8];
+    SDL_Texture *text_coord_pt[8];
+    char msg_coord_pt[8][100] = {0};
+    for(int i  = 0; i<8; i++)
     {
-        SDL_DestroyRenderer(ren);
-        SDL_DestroyWindow(win);
-        logSDLError("SDL_LoadBMP");
-        SDL_Quit();
-        return 1;
+        Surf_coord_pt[i] = TTF_RenderText_Blended(police, "", black);
+        Rect_coord_pt[i].w = 150;
+        Rect_coord_pt[i].h = 15;
+        text_coord_pt[i] = SDL_CreateTextureFromSurface(ren, Surf_coord_pt[i]);
     }
+    
     
     SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);                            // We set the background color (white)
     SDL_RenderClear(ren);
-    
     SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);                                  // We will draw in black
     angle = 1;
     while(1)
@@ -366,7 +399,7 @@ int main(int argc, char **argv)
         
         draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan1);
         draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan2);
-        draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan3);
+/*        draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan3);
         draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan4);
         draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan5);
         draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan6);
@@ -376,7 +409,7 @@ int main(int argc, char **argv)
         draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan10);
         draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan11);
         draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan12);
- 
+ */
         for(int i = 0; i<SCREEN_WIDTH; i++)
         {
             for(int j = 0; j<SCREEN_HEIGHT; j++)
@@ -384,19 +417,33 @@ int main(int argc, char **argv)
                if(canevas[j*SCREEN_HEIGHT+i].depth != 0)
                {
                    int color = (int)((float)(canevas[j*SCREEN_HEIGHT+i].depth/500)*255);
-                   SDL_SetRenderDrawColor(ren, color, color, color, 255);                              // We will draw in black
-                   //printf("color: %d\n", color);
+                   SDL_SetRenderDrawColor(ren, color, color, color, 255);       // The pixel color will reflect the depth of the point
                    SDL_RenderDrawPoint(ren, i, j);
-                   canevas[j*SCREEN_HEIGHT+i].depth = 0;                       // We have displayed the point. Clear it!
+                   canevas[j*SCREEN_HEIGHT+i].depth = 0;                        // We have displayed the point. Clear it!
                }
             }
+        }
+        for (int i = 0; i<8; i++)
+        {
+            sprintf(msg_coord_pt[i], "X: %.1lf, Y: %.1lf, Z: %.1lf", tabPoint[i].x_3D, tabPoint[i].y_3D, tabPoint[i].z_3D);
+            Surf_coord_pt[i] = TTF_RenderText_Solid(police, msg_coord_pt[i], black);
+            Rect_coord_pt[i].x =  tabPoint[i].x_2D;
+            Rect_coord_pt[i].y =  tabPoint[i].y_2D;
+            text_coord_pt[i] = SDL_CreateTextureFromSurface(ren, Surf_coord_pt[i]);
+            SDL_FreeSurface(Surf_coord_pt[i]);
+            SDL_RenderCopy(ren, text_coord_pt[i], NULL, &Rect_coord_pt[i]);
         }
         SDL_RenderPresent(ren);
         SDL_Delay(1000/FRAME_RATE);
     }
-    
+    for(int i = 0; i<8; i++)
+    {
+        SDL_FreeSurface(Surf_coord_pt[i]);
+    }
     SDL_DestroyRenderer(ren);
     SDL_DestroyWindow(win);
+    TTF_CloseFont(police);
+    TTF_Quit();
     SDL_Quit();                                                                 // We leave SDL
     
     return 0;
