@@ -115,7 +115,7 @@ void draw2DTriangle(m3DPoint *canevas, int w, int h, plan *p)
         }
         else
         {
-            y2 = (int)((double)(coef3*(i-Center->x_2D+Left->x_2D)+Center->y_2D));  // Calculate the end of the line for the second part
+            y2 = (int)((double)(coef3*(i-Center->x_2D+Left->x_2D)+Center->y_2D));// Calculate the end of the line for the second part
         }
         if(y1 >= y2)
         {
@@ -139,6 +139,13 @@ void draw2DTriangle(m3DPoint *canevas, int w, int h, plan *p)
     }
 }
 
+void calc_coef_plan(plan *p)
+{
+    p->coefA = (p->pt2->y_3D - p->pt1->y_3D)*(p->pt3->z_3D - p->pt1->z_3D) - (p->pt2->z_3D - p->pt1->z_3D)*(p->pt3->y_3D-p->pt1->y_3D);
+    p->coefB = (-1)*((p->pt2->x_3D - p->pt1->x_3D)*(p->pt3->z_3D - p->pt1->z_3D) - (p->pt2->z_3D - p->pt1->z_3D)*(p->pt3->x_3D-p->pt1->x_3D));
+    p->coefC = (p->pt2->x_3D - p->pt1->x_3D)*(p->pt3->y_3D-p->pt1->y_3D) - (p->pt2->y_3D - p->pt1->y_3D)*(p->pt3->x_3D-p->pt1->x_3D);
+    p->coefD = (-1)*(p->coefA*p->pt1->x_3D + p->coefB*p->pt1->y_3D + p->coefC*p->pt1->z_3D);
+}
 
 /**
  *  \fn     logSDLError
@@ -250,15 +257,19 @@ int main(int argc, char **argv)
     plan12.pt1 = &tabPoint[0];
     plan12.pt2 = &tabPoint[1];
     plan12.pt3 = &tabPoint[5];
-
-    /*    plan1.coefA = (plan1.p2->y_3D - plan1.p1->y_3D)*(plan1.p3->z_3D - plan1.p1->z_3D) - (plan1.p2->z_3D - plan1.p1->z_3D)*(plan1.p3->y_3D-plan1.p1->y_3D);
-     
-     plan1.coefB = (-1)*((plan1.p2->x_3D - plan1.p1->x_3D)*(plan1.p3->z_3D - plan1.p1->z_3D) - (plan1.p2->z_3D - plan1.p1->z_3D)*(plan1.p3->x_3D-plan1.p1->x_3D));
-     
-     plan1.coefC = (plan1.p2->x_3D - plan1.p1->x_3D)*(plan1.p3->y_3D-plan1.p1->y_3D) - (plan1.p2->y_3D - plan1.p1->y_3D)*(plan1.p3->x_3D-plan1.p1->x_3D);
-     
-     plan1.coefD = (-1)*(plan1.coefA*plan1.p1->x_3D + plan1.coefB*plan1.p1->y_3D + plan1.coefC*plan1.p1->z_3D);
-     */
+    
+    calc_coef_plan(&plan1);
+    calc_coef_plan(&plan2);
+    calc_coef_plan(&plan3);
+    calc_coef_plan(&plan4);
+    calc_coef_plan(&plan5);
+    calc_coef_plan(&plan6);
+    calc_coef_plan(&plan7);
+    calc_coef_plan(&plan8);
+    calc_coef_plan(&plan9);
+    calc_coef_plan(&plan10);
+    calc_coef_plan(&plan11);
+    calc_coef_plan(&plan12);
     
     if(SDL_Init(SDL_INIT_VIDEO) < 0)                                            // SDL Initialization
     {
@@ -306,8 +317,6 @@ int main(int argc, char **argv)
     angle = 1;
     while(1)
     {
-        
-        
         for(int i = 0; i<8; i++)
         {
             tabPoint[i].x_3D = tabPoint[i].x_3D*cos(angle%360*DEG_TO_RAD)-tabPoint[i].y_3D*sin(angle%360*DEG_TO_RAD);
