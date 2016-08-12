@@ -215,8 +215,8 @@ int main(int argc, char **argv)
     int index = 0;
     camera camera;
     camera.posX = 0;
-    camera.posY = 0;
-    camera.posZ = 300;
+    camera.posY = 300;
+    camera.posZ = 0;
     
     m3DPoint tabPoint[8];
     
@@ -425,8 +425,8 @@ int main(int argc, char **argv)
     SDL_RenderClear(ren);
     SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);                                  // We will draw in black
     angle = 1;
-    while(1)
-    //for (int k = 0; k<10; k++)
+    //while(1)
+    for (int k = 0; k<100; k++)
     {
         for(int i = 0; i<8; i++)
         {
@@ -452,8 +452,8 @@ int main(int argc, char **argv)
         for(int i = 0; i<8; i++)
         {
             tabPoint[i].depth = sqrtf(pow(camera.posX + tabPoint[i].x_3D, 2)+pow(camera.posY + tabPoint[i].y_3D, 2)+pow(camera.posZ + tabPoint[i].z_3D, 2));
-            tabPoint[i].x_2D = CONVERT_POS_X((tabPoint[i].depth*tabPoint[i].x_3D)/(tabPoint[i].depth+tabPoint[i].z_3D));
-            tabPoint[i].y_2D = CONVERT_POS_Y((tabPoint[i].depth*tabPoint[i].y_3D)/(tabPoint[i].depth+tabPoint[i].z_3D));
+            tabPoint[i].x_2D = CONVERT_POS_X((tabPoint[i].depth*tabPoint[i].x_3D)/(tabPoint[i].depth+tabPoint[i].y_3D));
+            tabPoint[i].y_2D = CONVERT_POS_Y((tabPoint[i].depth*tabPoint[i].z_3D*(-1))/(tabPoint[i].depth+tabPoint[i].y_3D));
         }
         
         draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan1);
