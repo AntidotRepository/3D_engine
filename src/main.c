@@ -31,7 +31,6 @@ struct color
 typedef struct m3DPoint m3DPoint;
 struct m3DPoint
 {
-    int ID;
     float x_3D;
     float y_3D;
     float z_3D;
@@ -217,46 +216,38 @@ int main(int argc, char **argv)
     camera camera;
     camera.posX = 0;
     camera.posY = 0;
-    camera.posZ = -300;
+    camera.posZ = 300;
     
     m3DPoint tabPoint[8];
     
-    tabPoint[0].ID =  0;
     tabPoint[0].x_3D =  50;
     tabPoint[0].y_3D =  50;
     tabPoint[0].z_3D = -50;
     
-    tabPoint[1].ID =  1;
     tabPoint[1].x_3D = -50;
     tabPoint[1].y_3D =  50;
     tabPoint[1].z_3D = -50;
     
-    tabPoint[2].ID =  2;
     tabPoint[2].x_3D = -50;
     tabPoint[2].y_3D = -50;
     tabPoint[2].z_3D = -50;
     
-    tabPoint[3].ID =  3;
     tabPoint[3].x_3D =  50;
     tabPoint[3].y_3D = -50;
     tabPoint[3].z_3D = -50;
     
-    tabPoint[4].ID =  4;
     tabPoint[4].x_3D =  50;
     tabPoint[4].y_3D =  50;
     tabPoint[4].z_3D =  50;
     
-    tabPoint[5].ID =  5;
     tabPoint[5].x_3D = -50;
     tabPoint[5].y_3D =  50;
     tabPoint[5].z_3D =  50;
     
-    tabPoint[6].ID =  6;
     tabPoint[6].x_3D = -50;
     tabPoint[6].y_3D = -50;
     tabPoint[6].z_3D =  50;
     
-    tabPoint[7].ID =  7;
     tabPoint[7].x_3D =  50;
     tabPoint[7].y_3D = -50;
     tabPoint[7].z_3D =  50;
@@ -435,7 +426,7 @@ int main(int argc, char **argv)
     SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);                                  // We will draw in black
     angle = 1;
     while(1)
-    //for (int k = 0; k<100; k++)
+    //for (int k = 0; k<10; k++)
     {
         for(int i = 0; i<8; i++)
         {
@@ -460,21 +451,10 @@ int main(int argc, char **argv)
         
         for(int i = 0; i<8; i++)
         {
-            tabPoint[i].depth = sqrtf(pow(camera.posX - tabPoint[i].x_3D, 2)+pow(camera.posY - tabPoint[i].y_3D, 2)+pow(camera.posZ - tabPoint[i].z_3D, 2));
+            tabPoint[i].depth = sqrtf(pow(camera.posX + tabPoint[i].x_3D, 2)+pow(camera.posY + tabPoint[i].y_3D, 2)+pow(camera.posZ + tabPoint[i].z_3D, 2));
             tabPoint[i].x_2D = CONVERT_POS_X((tabPoint[i].depth*tabPoint[i].x_3D)/(tabPoint[i].depth+tabPoint[i].z_3D));
             tabPoint[i].y_2D = CONVERT_POS_Y((tabPoint[i].depth*tabPoint[i].y_3D)/(tabPoint[i].depth+tabPoint[i].z_3D));
         }
-        
-        SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);                        // We set the background color (white)
-        SDL_RenderClear(ren);
-        
-        SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);                              // We will draw in black
-        
-        // dessin des contours de l'écran
-        SDL_RenderDrawLine(ren, 0, 0, SCREEN_WIDTH-1, 0);
-        SDL_RenderDrawLine(ren, SCREEN_WIDTH-1, 0, SCREEN_WIDTH-1, SCREEN_HEIGHT-1);
-        SDL_RenderDrawLine(ren, SCREEN_WIDTH-1, SCREEN_HEIGHT-1, 0, SCREEN_HEIGHT-1);
-        SDL_RenderDrawLine(ren, 0, SCREEN_HEIGHT-1, 0, 0);
         
         draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan1);
         draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan2);
@@ -504,17 +484,17 @@ int main(int argc, char **argv)
                //}
             }
         }
-        /*for (int i = 0; i<8; i++)
+        for (int i = 0; i<8; i++)
         {
-            //sprintf(msg_coord_pt[i], "X: %.1lf, Y: %.1lf, Z: %.1lf", tabPoint[i].x_3D, tabPoint[i].y_3D, tabPoint[i].z_3D);
-            sprintf(msg_coord_pt[i], "%lf", tabPoint[i].depth);
-            Surf_coord_pt[i] = TTF_RenderText_Solid(police, msg_coord_pt[i], white);
+            sprintf(msg_coord_pt[i], "X: %.1lf, Y: %.1lf, Z: %.1lf, D: %.1lf", tabPoint[i].x_3D, tabPoint[i].y_3D, tabPoint[i].z_3D, tabPoint[i].depth);
+            //sprintf(msg_coord_pt[i], "%lf", tabPoint[i].depth);
+            Surf_coord_pt[i] = TTF_RenderText_Solid(police, msg_coord_pt[i], black);
             Rect_coord_pt[i].x =  tabPoint[i].x_2D;
             Rect_coord_pt[i].y =  tabPoint[i].y_2D;
             text_coord_pt[i] = SDL_CreateTextureFromSurface(ren, Surf_coord_pt[i]);
             SDL_FreeSurface(Surf_coord_pt[i]);
             SDL_RenderCopy(ren, text_coord_pt[i], NULL, &Rect_coord_pt[i]);
-        }*/
+        }
         SDL_RenderPresent(ren);
         SDL_Delay(1000/FRAME_RATE);
     }
