@@ -13,6 +13,14 @@
 
 #define USER_DISTANCE           300
 
+typedef struct camera camera;
+struct camera
+{
+    int posX;
+    int posY;
+    int posZ;
+};
+
 typedef struct color color;
 struct color
 {
@@ -129,14 +137,22 @@ void draw2DTriangle(m3DPoint *canevas, int w, int h, plan *p)
         m3DPoint y1;
         m3DPoint y2;
         m3DPoint ytemp;
+        float tempDepth = 0;
+        int index = 0;
         
-        y1.y_2D = (int)((double)(coef2*i))+Left->y_2D;                                // Calculate the beginning of the line
-        //canevas[(int)(y1.y_2D)*h+i+(int)Left->x_2D].depth = 1;
-        canevas[(int)(y1.y_2D)*h+i+(int)Left->x_2D].color = p->color;
+        y1.y_2D = (int)((double)(coef2*i))+Left->y_2D;                          // Calculate the beginning of the line
+        tempDepth = (Right->depth+Center->depth+Left->depth)/3;
+        
+        index  = (int)(y1.y_2D)*h+i+(int)Left->x_2D;
+        if(canevas[index].depth < tempDepth)
+        {
+            canevas[index].color = p->color;
+            canevas[index].depth = tempDepth;
+        }
         
         if(i <= Center->x_2D-Left->x_2D)
         {
-            y2.y_2D = (int)((double)(coef1*i)+Left->y_2D);                            // Calculate the end of the line for the first part
+            y2.y_2D = (int)((double)(coef1*i)+Left->y_2D);                      // Calculate the end of the line for the first part
             if(y1.y_2D >= y2.y_2D)
             {
                 ytemp = y1;
@@ -144,8 +160,14 @@ void draw2DTriangle(m3DPoint *canevas, int w, int h, plan *p)
                 y2 = ytemp;
             }
             for(j = y1.y_2D; j<y2.y_2D; j++)
-                canevas[j*h+i+(int)Left->x_2D].color = p->color;
-                //canevas[j*h+i+(int)Left->x_2D].depth = 1;
+            {
+                index = (int)(j*h+i+(int)Left->x_2D);
+                if(canevas[index].depth < tempDepth)
+                {
+                    canevas[index].color = p->color;
+                    canevas[index].depth = tempDepth;
+                }
+            }
         }
         else
         {
@@ -157,24 +179,15 @@ void draw2DTriangle(m3DPoint *canevas, int w, int h, plan *p)
                 y2 = ytemp;
             }
             for(j = y1.y_2D; j<y2.y_2D; j++)
-                canevas[j*h+i+(int)Left->x_2D].color = p->color;
-                //canevas[j*h+i+(int)Left->x_2D].depth = 1;
+            {
+                index = (int)(j*h+i+(int)Left->x_2D);
+                if(canevas[index].depth < tempDepth)
+                {
+                    canevas[index].color = p->color;
+                    canevas[index].depth = tempDepth;
+                }
+            }
         }
-     
-       /* for(j = y1; j<y2; j++)                                                  // Draw the whole line
-        {
-            // To avoid trying accessing out of limit of the table:
-            if(i<0)
-                i = 0;
-            if(i>w)
-                i = w-1;
-            if(j<0)
-                j = 0;
-            if(j>h)
-                j = h-1;
-            canevas[j*h+i+(int)Left->x_2D].depth = Left->depth+coef1_depth*(j-y1);
-            //printf("depth = %f\n", canevas[j*h+i+(int)Left->x_2D].depth);
-        }*/
     }
 }
 
@@ -201,7 +214,12 @@ int main(int argc, char **argv)
     int angle = 0;
     struct m3DPoint *canevas = malloc(SCREEN_WIDTH*SCREEN_HEIGHT*sizeof(struct m3DPoint));  // Have to use dynamic allocation 'cause of to big table!
     TTF_Font *police = NULL;
-
+    int index = 0;
+    camera camera;
+    camera.posX = 0;
+    camera.posY = 0;
+    camera.posZ = 300;
+    
     m3DPoint tabPoint[8];
     
     tabPoint[0].ID =  0;
@@ -267,8 +285,8 @@ int main(int argc, char **argv)
     plan2.pt1 = &tabPoint[2];
     plan2.pt2 = &tabPoint[3];
     plan2.pt3 = &tabPoint[0];
-    plan2.color.r = 0;
-    plan2.color.g = 255;
+    plan2.color.r = 255;
+    plan2.color.g = 0;
     plan2.color.b = 0;
     
     plan3.pt1 = &tabPoint[4];
@@ -281,65 +299,65 @@ int main(int argc, char **argv)
     plan4.pt1 = &tabPoint[6];
     plan4.pt2 = &tabPoint[7];
     plan4.pt3 = &tabPoint[4];
-    plan4.color.r = 127;
-    plan4.color.g = 127;
-    plan4.color.b = 0;
+    plan4.color.r = 0;
+    plan4.color.g = 0;
+    plan4.color.b = 255;
     
     plan5.pt1 = &tabPoint[5];
     plan5.pt2 = &tabPoint[6];
     plan5.pt3 = &tabPoint[2];
     plan5.color.r = 0;
-    plan5.color.g = 127;
-    plan5.color.b = 127;
+    plan5.color.g = 255;
+    plan5.color.b = 0;
     
     plan6.pt1 = &tabPoint[2];
     plan6.pt2 = &tabPoint[1];
     plan6.pt3 = &tabPoint[5];
-    plan6.color.r = 127;
-    plan6.color.g = 0;
-    plan6.color.b = 127;
+    plan6.color.r = 0;
+    plan6.color.g = 255;
+    plan6.color.b = 0;
     
     plan7.pt1 = &tabPoint[3];
     plan7.pt2 = &tabPoint[7];
     plan7.pt3 = &tabPoint[6];
-    plan7.color.r = 80;
-    plan7.color.g = 80;
-    plan7.color.b = 80;
+    plan7.color.r = 127;
+    plan7.color.g = 127;
+    plan7.color.b = 0;
     
     plan8.pt1 = &tabPoint[3];
     plan8.pt2 = &tabPoint[6];
     plan8.pt3 = &tabPoint[7];
-    plan8.color.r = 0;
-    plan8.color.g = 0;
+    plan8.color.r = 127;
+    plan8.color.g = 127;
     plan8.color.b = 0;
     
     plan9.pt1 = &tabPoint[3];
     plan9.pt2 = &tabPoint[0];
     plan9.pt3 = &tabPoint[7];
-    plan9.color.r = 255;
-    plan9.color.g = 0;
-    plan9.color.b = 0;
+    plan9.color.r = 0;
+    plan9.color.g = 127;
+    plan9.color.b = 127;
     
     plan10.pt1 = &tabPoint[0];
     plan10.pt2 = &tabPoint[4];
     plan10.pt3 = &tabPoint[7];
     plan10.color.r = 0;
-    plan10.color.g = 255;
-    plan10.color.b = 0;
+    plan10.color.g = 127;
+    plan10.color.b = 127;
     
     plan11.pt1 = &tabPoint[5];
     plan11.pt2 = &tabPoint[4];
     plan11.pt3 = &tabPoint[0];
-    plan11.color.r = 0;
+    plan11.color.r = 127;
     plan11.color.g = 0;
-    plan11.color.b = 255;
+    plan11.color.b = 127;
     
     plan12.pt1 = &tabPoint[0];
     plan12.pt2 = &tabPoint[1];
     plan12.pt3 = &tabPoint[5];
     plan12.color.r = 127;
-    plan12.color.g = 127;
-    plan12.color.b = 0;
+    plan12.color.g = 0;
+    plan12.color.b = 127;
     
     calc_coef_plan(&plan1);
     calc_coef_plan(&plan2);
@@ -377,6 +395,7 @@ int main(int argc, char **argv)
         return -1;
     }
     SDL_Color black = {0, 0, 0};
+    SDL_Color white = {255, 255, 255};
     
     SDL_Window *win = SDL_CreateWindow("3D_engine", SDL_WINDOWPOS_UNDEFINED,    // Create a new window
                                        SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH,
@@ -417,6 +436,7 @@ int main(int argc, char **argv)
     SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);                                  // We will draw in black
     angle = 1;
     while(1)
+    //for (int k = 0; k<100; k++)
     {
         for(int i = 0; i<8; i++)
         {
@@ -434,9 +454,9 @@ int main(int argc, char **argv)
         
         for(int i = 0; i<8; i++)
         {
-            tabPoint[i].depth = sqrtf(pow(tabPoint[i].x_3D, 2)+pow(USER_DISTANCE - tabPoint[i].y_3D, 2)+pow(tabPoint[i].z_3D, 2));
-            tabPoint[i].x_2D = CONVERT_POS_X((USER_DISTANCE*tabPoint[i].x_3D)/(USER_DISTANCE+tabPoint[i].z_3D));
-            tabPoint[i].y_2D = CONVERT_POS_Y((USER_DISTANCE*tabPoint[i].y_3D)/(USER_DISTANCE+tabPoint[i].z_3D));
+            tabPoint[i].depth = sqrtf(pow(camera.posX - tabPoint[i].x_3D, 2)+pow(camera.posY - tabPoint[i].y_3D, 2)+pow(camera.posZ - tabPoint[i].z_3D, 2));
+            tabPoint[i].x_2D = CONVERT_POS_X((tabPoint[i].depth*tabPoint[i].x_3D)/(tabPoint[i].depth+tabPoint[i].z_3D));
+            tabPoint[i].y_2D = CONVERT_POS_Y((tabPoint[i].depth*tabPoint[i].y_3D)/(tabPoint[i].depth+tabPoint[i].z_3D));
         }
         
         SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);                        // We set the background color (white)
@@ -467,38 +487,36 @@ int main(int argc, char **argv)
         {
             for(int j = 0; j<SCREEN_HEIGHT; j++)
             {
-               //if(canevas[j*SCREEN_HEIGHT+i].color.r != 0)
-               //{
-                SDL_SetRenderDrawColor(ren, canevas[j*SCREEN_HEIGHT+i].color.r, canevas[j*SCREEN_HEIGHT+i].color.g, canevas[j*SCREEN_HEIGHT+i].color.b, 255);       // The pixel color will reflect the depth of the point
+                index = j*SCREEN_HEIGHT+i;
+                SDL_SetRenderDrawColor(ren, canevas[index].color.r, canevas[index].color.g, canevas[index].color.b, 255);       // The pixel color will reflect the depth of the point
                 SDL_RenderDrawPoint(ren, i, j);
                 canevas[j*SCREEN_HEIGHT+i].color.r = 255;                        // We have displayed the point. Clear it!
                 canevas[j*SCREEN_HEIGHT+i].color.g = 255;                        // We have displayed the point. Clear it!
                 canevas[j*SCREEN_HEIGHT+i].color.b = 255;                        // We have displayed the point. Clear it!
+                canevas[j*SCREEN_HEIGHT+i].depth = 0;
                //}
             }
         }
-        for (int i = 0; i<8; i++)
+        /*for (int i = 0; i<8; i++)
         {
-            sprintf(msg_coord_pt[i], "X: %.1lf, Y: %.1lf, Z: %.1lf", tabPoint[i].x_3D, tabPoint[i].y_3D, tabPoint[i].z_3D);
-            Surf_coord_pt[i] = TTF_RenderText_Solid(police, msg_coord_pt[i], black);
+            //sprintf(msg_coord_pt[i], "X: %.1lf, Y: %.1lf, Z: %.1lf", tabPoint[i].x_3D, tabPoint[i].y_3D, tabPoint[i].z_3D);
+            sprintf(msg_coord_pt[i], "%lf", tabPoint[i].depth);
+            Surf_coord_pt[i] = TTF_RenderText_Solid(police, msg_coord_pt[i], white);
             Rect_coord_pt[i].x =  tabPoint[i].x_2D;
             Rect_coord_pt[i].y =  tabPoint[i].y_2D;
             text_coord_pt[i] = SDL_CreateTextureFromSurface(ren, Surf_coord_pt[i]);
             SDL_FreeSurface(Surf_coord_pt[i]);
             SDL_RenderCopy(ren, text_coord_pt[i], NULL, &Rect_coord_pt[i]);
-        }
+        }*/
         SDL_RenderPresent(ren);
         SDL_Delay(1000/FRAME_RATE);
     }
-    for(int i = 0; i<8; i++)
-    {
-        SDL_FreeSurface(Surf_coord_pt[i]);
-    }
+    pause();
     SDL_DestroyRenderer(ren);
     SDL_DestroyWindow(win);
     TTF_CloseFont(police);
     TTF_Quit();
     SDL_Quit();                                                                 // We leave SDL
-    
+ 
     return 0;
 }
