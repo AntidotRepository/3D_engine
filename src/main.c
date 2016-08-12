@@ -216,9 +216,12 @@ int main(int argc, char **argv)
     camera camera;
     camera.posX = 0;
     camera.posY = 300;
-    camera.posZ = 0;
+    camera.posZ = 300;
     
     m3DPoint tabPoint[8];
+    m3DPoint tabTransf1[8];
+    m3DPoint tabTransf2[8];
+    m3DPoint tabTransf3[8];
     
     tabPoint[0].x_3D =  50;
     tabPoint[0].y_3D =  50;
@@ -265,86 +268,86 @@ int main(int argc, char **argv)
     plan plan11;
     plan plan12;
     
-    plan1.pt1 = &tabPoint[0];
-    plan1.pt2 = &tabPoint[1];
-    plan1.pt3 = &tabPoint[2];
+    plan1.pt1 = &tabTransf3[0];
+    plan1.pt2 = &tabTransf3[1];
+    plan1.pt3 = &tabTransf3[2];
     plan1.color.r = 255;
     plan1.color.g = 0;
     plan1.color.b = 0;
     
-    plan2.pt1 = &tabPoint[2];
-    plan2.pt2 = &tabPoint[3];
-    plan2.pt3 = &tabPoint[0];
+    plan2.pt1 = &tabTransf3[2];
+    plan2.pt2 = &tabTransf3[3];
+    plan2.pt3 = &tabTransf3[0];
     plan2.color.r = 255;
     plan2.color.g = 0;
     plan2.color.b = 0;
     
-    plan3.pt1 = &tabPoint[4];
-    plan3.pt2 = &tabPoint[5];
-    plan3.pt3 = &tabPoint[6];
+    plan3.pt1 = &tabTransf3[4];
+    plan3.pt2 = &tabTransf3[5];
+    plan3.pt3 = &tabTransf3[6];
     plan3.color.r = 0;
     plan3.color.g = 0;
     plan3.color.b = 255;
     
-    plan4.pt1 = &tabPoint[6];
-    plan4.pt2 = &tabPoint[7];
-    plan4.pt3 = &tabPoint[4];
+    plan4.pt1 = &tabTransf3[6];
+    plan4.pt2 = &tabTransf3[7];
+    plan4.pt3 = &tabTransf3[4];
     plan4.color.r = 0;
     plan4.color.g = 0;
     plan4.color.b = 255;
     
-    plan5.pt1 = &tabPoint[5];
-    plan5.pt2 = &tabPoint[6];
-    plan5.pt3 = &tabPoint[2];
+    plan5.pt1 = &tabTransf3[5];
+    plan5.pt2 = &tabTransf3[6];
+    plan5.pt3 = &tabTransf3[2];
     plan5.color.r = 0;
     plan5.color.g = 255;
     plan5.color.b = 0;
     
-    plan6.pt1 = &tabPoint[2];
-    plan6.pt2 = &tabPoint[1];
-    plan6.pt3 = &tabPoint[5];
+    plan6.pt1 = &tabTransf3[2];
+    plan6.pt2 = &tabTransf3[1];
+    plan6.pt3 = &tabTransf3[5];
     plan6.color.r = 0;
     plan6.color.g = 255;
     plan6.color.b = 0;
     
-    plan7.pt1 = &tabPoint[3];
-    plan7.pt2 = &tabPoint[7];
-    plan7.pt3 = &tabPoint[6];
+    plan7.pt1 = &tabTransf3[3];
+    plan7.pt2 = &tabTransf3[7];
+    plan7.pt3 = &tabTransf3[6];
     plan7.color.r = 127;
     plan7.color.g = 127;
     plan7.color.b = 0;
     
-    plan8.pt1 = &tabPoint[3];
-    plan8.pt2 = &tabPoint[6];
-    plan8.pt3 = &tabPoint[2];
+    plan8.pt1 = &tabTransf3[3];
+    plan8.pt2 = &tabTransf3[6];
+    plan8.pt3 = &tabTransf3[2];
     plan8.color.r = 127;
     plan8.color.g = 127;
     plan8.color.b = 0;
     
-    plan9.pt1 = &tabPoint[3];
-    plan9.pt2 = &tabPoint[0];
-    plan9.pt3 = &tabPoint[7];
+    plan9.pt1 = &tabTransf3[3];
+    plan9.pt2 = &tabTransf3[0];
+    plan9.pt3 = &tabTransf3[7];
     plan9.color.r = 0;
     plan9.color.g = 127;
     plan9.color.b = 127;
     
-    plan10.pt1 = &tabPoint[0];
-    plan10.pt2 = &tabPoint[4];
-    plan10.pt3 = &tabPoint[7];
+    plan10.pt1 = &tabTransf3[0];
+    plan10.pt2 = &tabTransf3[4];
+    plan10.pt3 = &tabTransf3[7];
     plan10.color.r = 0;
     plan10.color.g = 127;
     plan10.color.b = 127;
     
-    plan11.pt1 = &tabPoint[5];
-    plan11.pt2 = &tabPoint[4];
-    plan11.pt3 = &tabPoint[0];
+    plan11.pt1 = &tabTransf3[5];
+    plan11.pt2 = &tabTransf3[4];
+    plan11.pt3 = &tabTransf3[0];
     plan11.color.r = 127;
     plan11.color.g = 0;
     plan11.color.b = 127;
     
-    plan12.pt1 = &tabPoint[0];
-    plan12.pt2 = &tabPoint[1];
-    plan12.pt3 = &tabPoint[5];
+    plan12.pt1 = &tabTransf3[0];
+    plan12.pt2 = &tabTransf3[1];
+    plan12.pt3 = &tabTransf3[5];
     plan12.color.r = 127;
     plan12.color.g = 0;
     plan12.color.b = 127;
@@ -420,42 +423,38 @@ int main(int argc, char **argv)
         text_coord_pt[i] = SDL_CreateTextureFromSurface(ren, Surf_coord_pt[i]);
     }
     
-    
-    SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);                            // We set the background color (white)
-    SDL_RenderClear(ren);
-    SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);                                  // We will draw in black
     angle = 1;
-    //while(1)
-    for (int k = 0; k<100; k++)
+    while(1)
+    //for (int k = 0; k<100; k++)
     {
         for(int i = 0; i<8; i++)
         {
-            tabPoint[i].x_3D = tabPoint[i].x_3D;
-            tabPoint[i].y_3D = tabPoint[i].y_3D*cos(angle%360*DEG_TO_RAD)-tabPoint[i].z_3D*sin(angle%360*DEG_TO_RAD);
-            tabPoint[i].z_3D = tabPoint[i].y_3D*sin(angle%360*DEG_TO_RAD)+tabPoint[i].z_3D*cos(angle%360*DEG_TO_RAD);
+            tabTransf1[i].x_3D = tabPoint[i].x_3D;
+            tabTransf1[i].y_3D = tabPoint[i].y_3D*cos(angle%360*DEG_TO_RAD)-tabPoint[i].z_3D*sin(angle%360*DEG_TO_RAD);
+            tabTransf1[i].z_3D = tabPoint[i].y_3D*sin(angle%360*DEG_TO_RAD)+tabPoint[i].z_3D*cos(angle%360*DEG_TO_RAD);
         }
         
         for(int i = 0; i<8; i++)
         {
-            tabPoint[i].x_3D = tabPoint[i].z_3D*sin(angle%360*DEG_TO_RAD)+tabPoint[i].x_3D*cos(angle%360*DEG_TO_RAD);
-            tabPoint[i].y_3D = tabPoint[i].y_3D;
-            tabPoint[i].z_3D = tabPoint[i].z_3D*cos(angle%360*DEG_TO_RAD)-tabPoint[i].x_3D*sin(angle%360*DEG_TO_RAD);
+            tabTransf2[i].x_3D = tabTransf1[i].z_3D*sin(angle%360*DEG_TO_RAD)+tabTransf1[i].x_3D*cos(angle%360*DEG_TO_RAD);
+            tabTransf2[i].y_3D = tabTransf1[i].y_3D;
+            tabTransf2[i].z_3D = tabTransf1[i].z_3D*cos(angle%360*DEG_TO_RAD)-tabTransf1[i].x_3D*sin(angle%360*DEG_TO_RAD);
         }
 
         for(int i = 0; i<8; i++)
         {
-            tabPoint[i].x_3D = tabPoint[i].x_3D*cos(angle%360*DEG_TO_RAD)-tabPoint[i].y_3D*sin(angle%360*DEG_TO_RAD);
-            tabPoint[i].y_3D = tabPoint[i].x_3D*sin(angle%360*DEG_TO_RAD)+tabPoint[i].y_3D*cos(angle%360*DEG_TO_RAD);
-            tabPoint[i].z_3D = tabPoint[i].z_3D;
+            tabTransf3[i].x_3D = tabTransf2[i].x_3D*cos(angle%360*DEG_TO_RAD)-tabTransf2[i].y_3D*sin(angle%360*DEG_TO_RAD);
+            tabTransf3[i].y_3D = tabTransf2[i].x_3D*sin(angle%360*DEG_TO_RAD)+tabTransf2[i].y_3D*cos(angle%360*DEG_TO_RAD);
+            tabTransf3[i].z_3D = tabTransf2[i].z_3D;
         }
         
         for(int i = 0; i<8; i++)
         {
-            tabPoint[i].depth = sqrtf(pow(camera.posX + tabPoint[i].x_3D, 2)+pow(camera.posY + tabPoint[i].y_3D, 2)+pow(camera.posZ + tabPoint[i].z_3D, 2));
-            tabPoint[i].x_2D = CONVERT_POS_X((tabPoint[i].depth*tabPoint[i].x_3D)/(tabPoint[i].depth+tabPoint[i].y_3D));
-            tabPoint[i].y_2D = CONVERT_POS_Y((tabPoint[i].depth*tabPoint[i].z_3D*(-1))/(tabPoint[i].depth+tabPoint[i].y_3D));
+            tabTransf3[i].depth = sqrtf(pow(camera.posX + tabTransf3[i].x_3D, 2)+pow(camera.posY + tabTransf3[i].y_3D, 2)+pow(camera.posZ + tabTransf3[i].z_3D, 2));
+            tabTransf3[i].x_2D = CONVERT_POS_X((tabTransf3[i].depth*tabTransf3[i].x_3D)/(tabTransf3[i].depth+tabTransf3[i].y_3D));
+            tabTransf3[i].y_2D = CONVERT_POS_Y((tabTransf3[i].depth*tabTransf3[i].z_3D*(-1))/(tabTransf3[i].depth+tabTransf3[i].y_3D));
         }
-        
+        angle += 5;
         draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan1);
         draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan2);
         draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan3);
@@ -468,7 +467,7 @@ int main(int argc, char **argv)
         draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan10);
         draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan11);
         draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan12);
- 
+        
         for(int i = 0; i<SCREEN_WIDTH; i++)
         {
             for(int j = 0; j<SCREEN_HEIGHT; j++)
@@ -486,11 +485,11 @@ int main(int argc, char **argv)
         }
         for (int i = 0; i<8; i++)
         {
-            sprintf(msg_coord_pt[i], "X: %.1lf, Y: %.1lf, Z: %.1lf, D: %.1lf", tabPoint[i].x_3D, tabPoint[i].y_3D, tabPoint[i].z_3D, tabPoint[i].depth);
+            sprintf(msg_coord_pt[i], "X: %.1lf, Y: %.1lf, Z: %.1lf, D: %.1lf", tabTransf3[i].x_3D, tabTransf3[i].y_3D, tabTransf3[i].z_3D, tabTransf3[i].depth);
             //sprintf(msg_coord_pt[i], "%lf", tabPoint[i].depth);
             Surf_coord_pt[i] = TTF_RenderText_Solid(police, msg_coord_pt[i], black);
-            Rect_coord_pt[i].x =  tabPoint[i].x_2D;
-            Rect_coord_pt[i].y =  tabPoint[i].y_2D;
+            Rect_coord_pt[i].x =  tabTransf3[i].x_2D;
+            Rect_coord_pt[i].y =  tabTransf3[i].y_2D;
             text_coord_pt[i] = SDL_CreateTextureFromSurface(ren, Surf_coord_pt[i]);
             SDL_FreeSurface(Surf_coord_pt[i]);
             SDL_RenderCopy(ren, text_coord_pt[i], NULL, &Rect_coord_pt[i]);
@@ -498,7 +497,7 @@ int main(int argc, char **argv)
         SDL_RenderPresent(ren);
         SDL_Delay(1000/FRAME_RATE);
     }
-    pause();
+    //pause();
     SDL_DestroyRenderer(ren);
     SDL_DestroyWindow(win);
     TTF_CloseFont(police);
