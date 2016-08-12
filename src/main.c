@@ -5,13 +5,12 @@
 
 #define SCREEN_WIDTH            640                                             // Window width
 #define SCREEN_HEIGHT           480                                             // Window heigh
-#define FRAME_RATE              40
+#define FRAME_RATE              60
 #define DEG_TO_RAD              0.01745329
+#define MAX_DEPTH               1000
 
 #define CONVERT_POS_X(pos_X)    pos_X+SCREEN_WIDTH/2
 #define CONVERT_POS_Y(pos_Y)    pos_Y+SCREEN_HEIGHT/2
-
-#define USER_DISTANCE           300
 
 typedef struct camera camera;
 struct camera
@@ -141,10 +140,10 @@ void draw2DTriangle(m3DPoint *canevas, int w, int h, plan *p)
         int index = 0;
         
         y1.y_2D = (int)((double)(coef2*i))+Left->y_2D;                          // Calculate the beginning of the line
-        tempDepth = (Right->depth+Center->depth+Left->depth)/3;
+        tempDepth = (Right->depth+Center->depth+Left->depth)/3;                 // Approximation of the distance of the plane to the camera
         
         index  = (int)(y1.y_2D)*h+i+(int)Left->x_2D;
-        if(canevas[index].depth < tempDepth)
+        if(canevas[index].depth > tempDepth)
         {
             canevas[index].color = p->color;
             canevas[index].depth = tempDepth;
@@ -162,7 +161,7 @@ void draw2DTriangle(m3DPoint *canevas, int w, int h, plan *p)
             for(j = y1.y_2D; j<y2.y_2D; j++)
             {
                 index = (int)(j*h+i+(int)Left->x_2D);
-                if(canevas[index].depth < tempDepth)
+                if(canevas[index].depth > tempDepth)
                 {
                     canevas[index].color = p->color;
                     canevas[index].depth = tempDepth;
@@ -181,7 +180,7 @@ void draw2DTriangle(m3DPoint *canevas, int w, int h, plan *p)
             for(j = y1.y_2D; j<y2.y_2D; j++)
             {
                 index = (int)(j*h+i+(int)Left->x_2D);
-                if(canevas[index].depth < tempDepth)
+                if(canevas[index].depth > tempDepth)
                 {
                     canevas[index].color = p->color;
                     canevas[index].depth = tempDepth;
@@ -218,7 +217,7 @@ int main(int argc, char **argv)
     camera camera;
     camera.posX = 0;
     camera.posY = 0;
-    camera.posZ = 300;
+    camera.posZ = -300;
     
     m3DPoint tabPoint[8];
     
@@ -326,7 +325,7 @@ int main(int argc, char **argv)
     
     plan8.pt1 = &tabPoint[3];
     plan8.pt2 = &tabPoint[6];
-    plan8.pt3 = &tabPoint[7];
+    plan8.pt3 = &tabPoint[2];
     plan8.color.r = 127;
     plan8.color.g = 127;
     plan8.color.b = 0;
@@ -440,16 +439,23 @@ int main(int argc, char **argv)
     {
         for(int i = 0; i<8; i++)
         {
-            tabPoint[i].x_3D = tabPoint[i].x_3D*cos(angle%360*DEG_TO_RAD)-tabPoint[i].y_3D*sin(angle%360*DEG_TO_RAD);
-            tabPoint[i].y_3D = tabPoint[i].x_3D*sin(angle%360*DEG_TO_RAD)+tabPoint[i].y_3D*cos(angle%360*DEG_TO_RAD);
-            tabPoint[i].z_3D = tabPoint[i].z_3D;
+            tabPoint[i].x_3D = tabPoint[i].x_3D;
+            tabPoint[i].y_3D = tabPoint[i].y_3D*cos(angle%360*DEG_TO_RAD)-tabPoint[i].z_3D*sin(angle%360*DEG_TO_RAD);
+            tabPoint[i].z_3D = tabPoint[i].y_3D*sin(angle%360*DEG_TO_RAD)+tabPoint[i].z_3D*cos(angle%360*DEG_TO_RAD);
         }
         
         for(int i = 0; i<8; i++)
         {
-            tabPoint[i].x_3D = tabPoint[i].x_3D;
-            tabPoint[i].y_3D = tabPoint[i].y_3D*cos(angle%360*DEG_TO_RAD)-tabPoint[i].z_3D*sin(angle%360*DEG_TO_RAD);
-            tabPoint[i].z_3D = tabPoint[i].y_3D*sin(angle%360*DEG_TO_RAD)+tabPoint[i].z_3D*cos(angle%360*DEG_TO_RAD);
+            tabPoint[i].x_3D = tabPoint[i].z_3D*sin(angle%360*DEG_TO_RAD)+tabPoint[i].x_3D*cos(angle%360*DEG_TO_RAD);
+            tabPoint[i].y_3D = tabPoint[i].y_3D;
+            tabPoint[i].z_3D = tabPoint[i].z_3D*cos(angle%360*DEG_TO_RAD)-tabPoint[i].x_3D*sin(angle%360*DEG_TO_RAD);
+        }
+
+        for(int i = 0; i<8; i++)
+        {
+            tabPoint[i].x_3D = tabPoint[i].x_3D*cos(angle%360*DEG_TO_RAD)-tabPoint[i].y_3D*sin(angle%360*DEG_TO_RAD);
+            tabPoint[i].y_3D = tabPoint[i].x_3D*sin(angle%360*DEG_TO_RAD)+tabPoint[i].y_3D*cos(angle%360*DEG_TO_RAD);
+            tabPoint[i].z_3D = tabPoint[i].z_3D;
         }
         
         for(int i = 0; i<8; i++)
@@ -488,12 +494,13 @@ int main(int argc, char **argv)
             for(int j = 0; j<SCREEN_HEIGHT; j++)
             {
                 index = j*SCREEN_HEIGHT+i;
-                SDL_SetRenderDrawColor(ren, canevas[index].color.r, canevas[index].color.g, canevas[index].color.b, 255);       // The pixel color will reflect the depth of the point
+                SDL_SetRenderDrawColor(ren, canevas[index].color.r, canevas[index].color.g, canevas[index].color.b, 255);
+                //SDL_SetRenderDrawColor(ren, canevas[index].depth, canevas[index].depth, canevas[index].depth, 255);
                 SDL_RenderDrawPoint(ren, i, j);
-                canevas[j*SCREEN_HEIGHT+i].color.r = 255;                        // We have displayed the point. Clear it!
-                canevas[j*SCREEN_HEIGHT+i].color.g = 255;                        // We have displayed the point. Clear it!
-                canevas[j*SCREEN_HEIGHT+i].color.b = 255;                        // We have displayed the point. Clear it!
-                canevas[j*SCREEN_HEIGHT+i].depth = 0;
+                canevas[j*SCREEN_HEIGHT+i].color.r = 255;                       // We have displayed the point. Clear it!
+                canevas[j*SCREEN_HEIGHT+i].color.g = 255;                       // We have displayed the point. Clear it!
+                canevas[j*SCREEN_HEIGHT+i].color.b = 255;                       // We have displayed the point. Clear it!
+                canevas[j*SCREEN_HEIGHT+i].depth = MAX_DEPTH;
                //}
             }
         }
