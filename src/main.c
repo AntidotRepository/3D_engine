@@ -13,9 +13,18 @@
 
 #define USER_DISTANCE           300
 
+typedef struct color color;
+struct color
+{
+    char r;
+    char g;
+    char b;
+};
+
 typedef struct m3DPoint m3DPoint;
 struct m3DPoint
 {
+    int ID;
     float x_3D;
     float y_3D;
     float z_3D;
@@ -23,6 +32,7 @@ struct m3DPoint
     float y_2D;
     char display;
     float depth;
+    color color;
 };
 
 typedef struct plan plan;
@@ -35,6 +45,7 @@ struct plan
     float coefB;
     float coefC;
     float coefD;
+    color color;
     // Add normal vector
 };
 
@@ -95,25 +106,21 @@ void draw2DTriangle(m3DPoint *canevas, int w, int h, plan *p)
     
     // We calculate coef of each side of the triangle
     float coef1 = 0.0, coef2 = 0.0, coef3 = 0.0;
-    float coef1_depth = 0.0, coef2_depth = 0.0, coef3_depth = 0.0;
     int L = 0;
     if(Center->x_2D != Left->x_2D)
     {
         coef1 = ((float)Center->y_2D-(float)Left->y_2D)/((float)Center->x_2D-(float)Left->x_2D);
         L = sqrt(pow(Center->x_3D-Left->x_3D, 2)+pow(Center->y_3D-Left->y_3D, 2)+pow(Center->z_3D-Left->z_3D, 2));
-        coef1_depth = ((float)Center->depth - (float)Left->depth)/L;
     }
     if(Right->x_2D != Left->x_2D)
     {
         coef2 = ((float)Right->y_2D-(float)Left->y_2D)/((float)Right->x_2D-(float)Left->x_2D);
         L = sqrt(pow(Right->x_3D-Left->x_3D, 2)+pow(Right->y_3D-Left->y_3D, 2)+pow(Right->z_3D-Left->z_3D, 2));
-        coef2_depth = ((float)Right->depth - (float)Left->depth)/L;
     }
     if(Right->x_2D != Center->x_2D)
     {
         coef3 = ((float)Right->y_2D-(float)Center->y_2D)/((float)Right->x_2D-(float)Center->x_2D);
         L = sqrt(pow(Right->x_3D-Center->x_3D, 2)+pow(Right->y_3D-Center->y_3D, 2)+pow(Right->z_3D-Center->z_3D, 2));
-        coef3_depth = ((float)Right->depth - (float)Center->depth)/L;
     }
     
     // We start to fill it
@@ -124,8 +131,8 @@ void draw2DTriangle(m3DPoint *canevas, int w, int h, plan *p)
         m3DPoint ytemp;
         
         y1.y_2D = (int)((double)(coef2*i))+Left->y_2D;                                // Calculate the beginning of the line
-        y1.depth = Left->depth+coef2_depth*(j-y1.y_2D);
-        canevas[(int)(y1.y_2D)*h+i+(int)Left->x_2D].depth = y1.depth;
+        //canevas[(int)(y1.y_2D)*h+i+(int)Left->x_2D].depth = 1;
+        canevas[(int)(y1.y_2D)*h+i+(int)Left->x_2D].color = p->color;
         
         if(i <= Center->x_2D-Left->x_2D)
         {
@@ -137,7 +144,8 @@ void draw2DTriangle(m3DPoint *canevas, int w, int h, plan *p)
                 y2 = ytemp;
             }
             for(j = y1.y_2D; j<y2.y_2D; j++)
-                canevas[j*h+i+(int)Left->x_2D].depth = Left->depth+coef1_depth*(j-y1.y_2D);
+                canevas[j*h+i+(int)Left->x_2D].color = p->color;
+                //canevas[j*h+i+(int)Left->x_2D].depth = 1;
         }
         else
         {
@@ -149,9 +157,10 @@ void draw2DTriangle(m3DPoint *canevas, int w, int h, plan *p)
                 y2 = ytemp;
             }
             for(j = y1.y_2D; j<y2.y_2D; j++)
-                canevas[j*h+i+(int)Left->x_2D].depth = Left->depth+coef3_depth*(j-y1.y_2D);
+                canevas[j*h+i+(int)Left->x_2D].color = p->color;
+                //canevas[j*h+i+(int)Left->x_2D].depth = 1;
         }
-        
+     
        /* for(j = y1; j<y2; j++)                                                  // Draw the whole line
         {
             // To avoid trying accessing out of limit of the table:
@@ -195,34 +204,42 @@ int main(int argc, char **argv)
 
     m3DPoint tabPoint[8];
     
+    tabPoint[0].ID =  0;
     tabPoint[0].x_3D =  50;
     tabPoint[0].y_3D =  50;
     tabPoint[0].z_3D = -50;
     
+    tabPoint[1].ID =  1;
     tabPoint[1].x_3D = -50;
     tabPoint[1].y_3D =  50;
     tabPoint[1].z_3D = -50;
     
+    tabPoint[2].ID =  2;
     tabPoint[2].x_3D = -50;
     tabPoint[2].y_3D = -50;
     tabPoint[2].z_3D = -50;
     
+    tabPoint[3].ID =  3;
     tabPoint[3].x_3D =  50;
     tabPoint[3].y_3D = -50;
     tabPoint[3].z_3D = -50;
     
+    tabPoint[4].ID =  4;
     tabPoint[4].x_3D =  50;
     tabPoint[4].y_3D =  50;
     tabPoint[4].z_3D =  50;
     
+    tabPoint[5].ID =  5;
     tabPoint[5].x_3D = -50;
     tabPoint[5].y_3D =  50;
     tabPoint[5].z_3D =  50;
     
+    tabPoint[6].ID =  6;
     tabPoint[6].x_3D = -50;
     tabPoint[6].y_3D = -50;
     tabPoint[6].z_3D =  50;
     
+    tabPoint[7].ID =  7;
     tabPoint[7].x_3D =  50;
     tabPoint[7].y_3D = -50;
     tabPoint[7].z_3D =  50;
@@ -243,50 +260,86 @@ int main(int argc, char **argv)
     plan1.pt1 = &tabPoint[0];
     plan1.pt2 = &tabPoint[1];
     plan1.pt3 = &tabPoint[2];
+    plan1.color.r = 255;
+    plan1.color.g = 0;
+    plan1.color.b = 0;
     
     plan2.pt1 = &tabPoint[2];
     plan2.pt2 = &tabPoint[3];
     plan2.pt3 = &tabPoint[0];
+    plan2.color.r = 0;
+    plan2.color.g = 255;
+    plan2.color.b = 0;
     
     plan3.pt1 = &tabPoint[4];
     plan3.pt2 = &tabPoint[5];
     plan3.pt3 = &tabPoint[6];
+    plan3.color.r = 0;
+    plan3.color.g = 0;
+    plan3.color.b = 255;
     
     plan4.pt1 = &tabPoint[6];
     plan4.pt2 = &tabPoint[7];
     plan4.pt3 = &tabPoint[4];
+    plan4.color.r = 127;
+    plan4.color.g = 127;
+    plan4.color.b = 0;
     
     plan5.pt1 = &tabPoint[5];
     plan5.pt2 = &tabPoint[6];
     plan5.pt3 = &tabPoint[2];
+    plan5.color.r = 0;
+    plan5.color.g = 127;
+    plan5.color.b = 127;
     
     plan6.pt1 = &tabPoint[2];
     plan6.pt2 = &tabPoint[1];
     plan6.pt3 = &tabPoint[5];
+    plan6.color.r = 127;
+    plan6.color.g = 0;
+    plan6.color.b = 127;
     
     plan7.pt1 = &tabPoint[3];
     plan7.pt2 = &tabPoint[7];
     plan7.pt3 = &tabPoint[6];
+    plan7.color.r = 80;
+    plan7.color.g = 80;
+    plan7.color.b = 80;
     
     plan8.pt1 = &tabPoint[3];
     plan8.pt2 = &tabPoint[6];
     plan8.pt3 = &tabPoint[7];
+    plan8.color.r = 0;
+    plan8.color.g = 0;
+    plan8.color.b = 0;
     
     plan9.pt1 = &tabPoint[3];
     plan9.pt2 = &tabPoint[0];
     plan9.pt3 = &tabPoint[7];
+    plan9.color.r = 255;
+    plan9.color.g = 0;
+    plan9.color.b = 0;
     
     plan10.pt1 = &tabPoint[0];
     plan10.pt2 = &tabPoint[4];
     plan10.pt3 = &tabPoint[7];
+    plan10.color.r = 0;
+    plan10.color.g = 255;
+    plan10.color.b = 0;
     
     plan11.pt1 = &tabPoint[5];
     plan11.pt2 = &tabPoint[4];
     plan11.pt3 = &tabPoint[0];
+    plan11.color.r = 0;
+    plan11.color.g = 0;
+    plan11.color.b = 255;
     
     plan12.pt1 = &tabPoint[0];
     plan12.pt2 = &tabPoint[1];
     plan12.pt3 = &tabPoint[5];
+    plan12.color.r = 127;
+    plan12.color.g = 127;
+    plan12.color.b = 0;
     
     calc_coef_plan(&plan1);
     calc_coef_plan(&plan2);
@@ -399,7 +452,7 @@ int main(int argc, char **argv)
         
         draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan1);
         draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan2);
-/*        draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan3);
+        draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan3);
         draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan4);
         draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan5);
         draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan6);
@@ -409,18 +462,19 @@ int main(int argc, char **argv)
         draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan10);
         draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan11);
         draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan12);
- */
+ 
         for(int i = 0; i<SCREEN_WIDTH; i++)
         {
             for(int j = 0; j<SCREEN_HEIGHT; j++)
             {
-               if(canevas[j*SCREEN_HEIGHT+i].depth != 0)
-               {
-                   int color = (int)((float)(canevas[j*SCREEN_HEIGHT+i].depth/500)*255);
-                   SDL_SetRenderDrawColor(ren, color, color, color, 255);       // The pixel color will reflect the depth of the point
-                   SDL_RenderDrawPoint(ren, i, j);
-                   canevas[j*SCREEN_HEIGHT+i].depth = 0;                        // We have displayed the point. Clear it!
-               }
+               //if(canevas[j*SCREEN_HEIGHT+i].color.r != 0)
+               //{
+                SDL_SetRenderDrawColor(ren, canevas[j*SCREEN_HEIGHT+i].color.r, canevas[j*SCREEN_HEIGHT+i].color.g, canevas[j*SCREEN_HEIGHT+i].color.b, 255);       // The pixel color will reflect the depth of the point
+                SDL_RenderDrawPoint(ren, i, j);
+                canevas[j*SCREEN_HEIGHT+i].color.r = 255;                        // We have displayed the point. Clear it!
+                canevas[j*SCREEN_HEIGHT+i].color.g = 255;                        // We have displayed the point. Clear it!
+                canevas[j*SCREEN_HEIGHT+i].color.b = 255;                        // We have displayed the point. Clear it!
+               //}
             }
         }
         for (int i = 0; i<8; i++)
