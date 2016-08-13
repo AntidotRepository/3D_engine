@@ -206,7 +206,6 @@ void matrix_product(float res[3], float mat1[3][3], float mat2[3])
 
 void rotate(float x, float y, float z, int angle, m3DPoint *p)
 {
-    m3DPoint point;
     float teta = angle % 360 * DEG_TO_RAD;
     float mat1[3][3] =
     {{x*x*(1-cos(teta))+cos(teta), x*y*(1-cos(teta))-z*sin(teta), x*z*(1-cos(teta))+y*sin(teta)},
@@ -216,10 +215,6 @@ void rotate(float x, float y, float z, int angle, m3DPoint *p)
     float res[3] = {0};
     matrix_product(res, mat1, mat2);
     
-    //printf("res x = %lf, y = %lf, z = %lf\n", res[0], res[1], res[2]);
-    /*point.x_3D = res[0];
-    point.y_3D = res[1];
-    point.z_3D = res[2];*/
     p->x_3D = res[0];
     p->y_3D = res[1];
     p->z_3D = res[2];
@@ -505,6 +500,7 @@ int main(int argc, char **argv)
             text_coord_pt[i] = SDL_CreateTextureFromSurface(ren, Surf_coord_pt[i]);
             SDL_FreeSurface(Surf_coord_pt[i]);
             SDL_RenderCopy(ren, text_coord_pt[i], NULL, &Rect_coord_pt[i]);
+            SDL_DestroyTexture(text_coord_pt[i]);
         }
         SDL_RenderPresent(ren);
         SDL_Delay(1000/FRAME_RATE);
