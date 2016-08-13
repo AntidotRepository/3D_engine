@@ -223,7 +223,7 @@ void rotate(float x, float y, float z, int angle, m3DPoint *p)
 {
     float teta = angle % 360 * DEG_TO_RAD;
     float mat1[4][4] =
-    {{x*x*(1-cos(teta))+cos(teta), x*y*(1-cos(teta))-z*sin(teta), x*z*(1-cos(teta))+y*sin(teta), 0},
+       {{x*x*(1-cos(teta))+cos(teta), x*y*(1-cos(teta))-z*sin(teta), x*z*(1-cos(teta))+y*sin(teta), 0},
         {x*y*(1-cos(teta))+z*sin(teta), y*y*(1-cos(teta))+cos(teta), y*z*(1-cos(teta))-x*sin(teta), 0},
         {x*z*(1-cos(teta))-y*sin(teta), y*z*(1-cos(teta))+x*sin(teta), z*z*(1-cos(teta))+cos(teta), 0},
         {0, 0, 0, 1}};
@@ -238,7 +238,16 @@ void rotate(float x, float y, float z, int angle, m3DPoint *p)
 
 void translate(float x, float y, float z, m3DPoint *p)
 {
-
+    float mat1[4][4] = {{1, 0, 0, x},
+                        {0, 1, 0, y},
+                        {0, 0, 1, z},
+                        {0, 0, 0, 1}};
+    float mat2[4] = {p->x_3D, p->y_3D, p->z_3D, 1};
+    float res[4] = {0};
+    matrix_product(res, mat1, mat2);
+    p->x_3D = res[0];
+    p->y_3D = res[1];
+    p->z_3D = res[2];
 }
 
 
@@ -485,6 +494,8 @@ int main(int argc, char **argv)
                 rotate(0, 0, 1, angle, &model[i]);
                 rotate(0, 1, 0, angle, &model[i]);
                 rotate(1, 0, 0, angle, &model[i]);
+                
+                translate(angle, angle, angle, &model[i]);
             }
             
             // Moving the camera
