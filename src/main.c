@@ -18,6 +18,9 @@ struct camera
     int posX;
     int posY;
     int posZ;
+    int angleX;
+    int angleY;
+    int angleZ;
 };
 
 typedef struct color color;
@@ -236,6 +239,12 @@ void rotate(float x, float y, float z, int angle, m3DPoint *p)
     p->z_3D = res[2];
 }
 
+/**
+ *  \fn             translate
+ *  \brief          Translate a point p by a distance gived by x, y and z
+ *  \param[in]      x, y, z Distance to move on each axis
+ *  \param[inout]   *p Point to move
+ */
 void translate(float x, float y, float z, m3DPoint *p)
 {
     float mat1[4][4] = {{1, 0, 0, x},
@@ -261,13 +270,18 @@ void logSDLError(char *msg)
     printf("%s error: %s\n", msg, SDL_GetError());
 }
 
+/**
+ *  \fn     main
+ *  \brief  Main program
+ *  \param
+ */
 int main(int argc, char **argv)
 {
     Uint32 Actual_time = 0;
     Uint32 Previous_time = 0;
     
     int angle = 0;
-    struct m3DPoint *canevas = malloc(SCREEN_WIDTH*SCREEN_HEIGHT*sizeof(struct m3DPoint));  // Have to use dynamic allocation 'cause of to big table!
+    struct m3DPoint *canevas = malloc(SCREEN_WIDTH*SCREEN_HEIGHT*sizeof(struct m3DPoint));  // Have to use dynamic allocation 'cause of too big table!
     TTF_Font *police = NULL;
     int index = 0;
     camera camera;
@@ -502,6 +516,9 @@ int main(int argc, char **argv)
             for(int i = 0; i<8; i++)
             {
                 view[i] = model[i];
+                rotate(0, 0, 1, camera.angleX, &view[i]);
+                camera.angleX++;
+                translate(camera.posX, camera.posY, camera.posZ, &view[i]);
                // rotate(
                 //rotate(0, 0, 1, angle, &model[i]);
                 //rotate(0, 10, 0, angle, &model[i]);
@@ -510,11 +527,11 @@ int main(int argc, char **argv)
             
             for(int i = 0; i<8; i++)
             {
-                model[i].depth = sqrtf(pow(camera.posX + view[i].x_3D, 2)+pow(camera.posY + view[i].y_3D, 2)+pow(camera.posZ + view[i].z_3D, 2));
+                model[i].depth = sqrtf(pow(view[i].x_3D, 2)+pow(view[i].y_3D, 2)+pow(view[i].z_3D, 2));
                 model[i].x_2D = CONVERT_POS_X((view[i].depth*view[i].x_3D)/(view[i].depth+view[i].y_3D));
                 model[i].y_2D = CONVERT_POS_Y((view[i].depth*view[i].z_3D*(-1))/(view[i].depth+view[i].y_3D));
             }
-            //angle += 1;
+            
             draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan1);
             draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan2);
             draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan3);
@@ -536,9 +553,9 @@ int main(int argc, char **argv)
                     SDL_SetRenderDrawColor(ren, canevas[index].color.r, canevas[index].color.g, canevas[index].color.b, 255);
                     //SDL_SetRenderDrawColor(ren, canevas[index].depth, canevas[index].depth, canevas[index].depth, 255);
                     SDL_RenderDrawPoint(ren, i, j);
-                    canevas[j*SCREEN_HEIGHT+i].color.r = 220;                       // We have displayed the point. Clear it!
-                    canevas[j*SCREEN_HEIGHT+i].color.g = 220;                       // We have displayed the point. Clear it!
-                    canevas[j*SCREEN_HEIGHT+i].color.b = 220;                       // We have displayed the point. Clear it!
+                    canevas[j*SCREEN_HEIGHT+i].color.r = 220;                   // We have displayed the point. Clear it!
+                    canevas[j*SCREEN_HEIGHT+i].color.g = 220;                   // We have displayed the point. Clear it!
+                    canevas[j*SCREEN_HEIGHT+i].color.b = 220;                   // We have displayed the point. Clear it!
                     canevas[j*SCREEN_HEIGHT+i].depth = MAX_DEPTH;
                 }
             }
