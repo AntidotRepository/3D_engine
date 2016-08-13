@@ -12,6 +12,18 @@
 #define CONVERT_POS_X(pos_X)    pos_X+SCREEN_WIDTH/2
 #define CONVERT_POS_Y(pos_Y)    pos_Y+SCREEN_HEIGHT/2
 
+typedef struct Input Input;
+struct Input
+{
+    char key[SDL_NUM_SCANCODES];
+    int mouseX;
+    int mouseY;
+    int mouseXRel;
+    int mouseYRel;
+    char mousebuttons[8];
+    char quit;
+};
+
 typedef struct camera camera;
 struct camera
 {
@@ -226,7 +238,7 @@ void rotate(float x, float y, float z, int angle, m3DPoint *p)
 {
     float teta = angle % 360 * DEG_TO_RAD;
     float mat1[4][4] =
-       {{x*x*(1-cos(teta))+cos(teta), x*y*(1-cos(teta))-z*sin(teta), x*z*(1-cos(teta))+y*sin(teta), 0},
+    {{x*x*(1-cos(teta))+cos(teta), x*y*(1-cos(teta))-z*sin(teta), x*z*(1-cos(teta))+y*sin(teta), 0},
         {x*y*(1-cos(teta))+z*sin(teta), y*y*(1-cos(teta))+cos(teta), y*z*(1-cos(teta))-x*sin(teta), 0},
         {x*z*(1-cos(teta))-y*sin(teta), y*z*(1-cos(teta))+x*sin(teta), z*z*(1-cos(teta))+cos(teta), 0},
         {0, 0, 0, 1}};
@@ -248,9 +260,9 @@ void rotate(float x, float y, float z, int angle, m3DPoint *p)
 void translate(float x, float y, float z, m3DPoint *p)
 {
     float mat1[4][4] = {{1, 0, 0, x},
-                        {0, 1, 0, y},
-                        {0, 0, 1, z},
-                        {0, 0, 0, 1}};
+        {0, 1, 0, y},
+        {0, 0, 1, z},
+        {0, 0, 0, 1}};
     float mat2[4] = {p->x_3D, p->y_3D, p->z_3D, 1};
     float res[4] = {0};
     matrix_product(res, mat1, mat2);
@@ -270,6 +282,41 @@ void logSDLError(char *msg)
     printf("%s error: %s\n", msg, SDL_GetError());
 }
 
+void UpdateEvents(Input *in)
+{
+    SDL_Event event;
+    
+    while(SDL_PollEvent(&event))
+    {
+        switch(event.type)
+        {
+            case SDL_KEYDOWN:
+                in->key[event.key.keysym.sym] = 1;
+                break;
+            case SDL_KEYUP:
+                in->key[event.key.keysym.sym] = 0;
+                break;
+            case SDL_MOUSEMOTION:
+                in->mouseX = event.motion.x;
+                in->mouseY = event.motion.y;
+                in->mouseXRel = event.motion.xrel;
+                in->mouseYRel = event.motion.yrel;
+                break;
+            case SDL_MOUSEBUTTONDOWN:
+                in->mousebuttons[event.button.button] = 1;
+                break;
+            case SDL_MOUSEBUTTONUP:
+                in->mousebuttons[event.button.button] = 0;
+                break;
+            case SDL_QUIT:
+                in->quit = 1;
+                break;
+            default:
+                break;
+        }
+    }
+}
+
 /**
  *  \fn     main
  *  \brief  Main program
@@ -279,11 +326,14 @@ int main(int argc, char **argv)
 {
     Uint32 Actual_time = 0;
     Uint32 Previous_time = 0;
-    
+    Input in;
+    memset(&in, 0, sizeof(in));                                                 // Initialize the structure to 0
+    int pause = 0;
     int angle = 0;
     struct m3DPoint *canevas = malloc(SCREEN_WIDTH*SCREEN_HEIGHT*sizeof(struct m3DPoint));  // Have to use dynamic allocation 'cause of too big table!
     TTF_Font *police = NULL;
     int index = 0;
+    
     camera camera;
     camera.posX = 0;
     camera.posY = 300;
@@ -493,93 +543,101 @@ int main(int argc, char **argv)
     }
     
     angle = 1;
-    while(1)
-        //for (int k = 0; k<100; k++)
+    while(!in.key[SDLK_ESCAPE] && !in.quit)
     {
         Actual_time = SDL_GetTicks();
         
-        if(Actual_time - Previous_time > 1000/FRAME_RATE)
+        UpdateEvents(&in);
+        if(in.key[SDLK_SPACE])
         {
-            Previous_time = Actual_time;
-            
-            // Moving the cube
-            for(int i = 0; i<8; i++)
-            {
-                rotate(0, 0, 1, angle, &model[i]);
-                rotate(0, 1, 0, angle, &model[i]);
-                rotate(1, 0, 0, angle, &model[i]);
-                
-                translate(angle, angle, angle, &model[i]);
-            }
-            
-            // Moving the camera
-            for(int i = 0; i<8; i++)
-            {
-                view[i] = model[i];
-                rotate(0, 0, 1, camera.angleX, &view[i]);
-                camera.angleX++;
-                translate(camera.posX, camera.posY, camera.posZ, &view[i]);
-               // rotate(
-                //rotate(0, 0, 1, angle, &model[i]);
-                //rotate(0, 10, 0, angle, &model[i]);
-                //rotate(1, 0, 0, angle, &model[i]);
-            }
-            
-            for(int i = 0; i<8; i++)
-            {
-                model[i].depth = sqrtf(pow(view[i].x_3D, 2)+pow(view[i].y_3D, 2)+pow(view[i].z_3D, 2));
-                model[i].x_2D = CONVERT_POS_X((view[i].depth*view[i].x_3D)/(view[i].depth+view[i].y_3D));
-                model[i].y_2D = CONVERT_POS_Y((view[i].depth*view[i].z_3D*(-1))/(view[i].depth+view[i].y_3D));
-            }
-            
-            draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan1);
-            draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan2);
-            draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan3);
-            draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan4);
-            draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan5);
-            draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan6);
-            draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan7);
-            draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan8);
-            draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan9);
-            draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan10);
-            draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan11);
-            draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan12);
-            
-            for(int i = 0; i<SCREEN_WIDTH; i++)
-            {
-                for(int j = 0; j<SCREEN_HEIGHT; j++)
-                {
-                    index = j*SCREEN_HEIGHT+i;
-                    SDL_SetRenderDrawColor(ren, canevas[index].color.r, canevas[index].color.g, canevas[index].color.b, 255);
-                    //SDL_SetRenderDrawColor(ren, canevas[index].depth, canevas[index].depth, canevas[index].depth, 255);
-                    SDL_RenderDrawPoint(ren, i, j);
-                    canevas[j*SCREEN_HEIGHT+i].color.r = 220;                   // We have displayed the point. Clear it!
-                    canevas[j*SCREEN_HEIGHT+i].color.g = 220;                   // We have displayed the point. Clear it!
-                    canevas[j*SCREEN_HEIGHT+i].color.b = 220;                   // We have displayed the point. Clear it!
-                    canevas[j*SCREEN_HEIGHT+i].depth = MAX_DEPTH;
-                }
-            }
-            for (int i = 0; i<8; i++)
-            {
-                sprintf(msg_coord_pt[i], "X: %.1lf, Y: %.1lf, Z: %.1lf, D: %.1lf", model[i].x_3D, model[i].y_3D, model[i].z_3D, model[i].depth);
-                //sprintf(msg_coord_pt[i], "%lf", model[i].depth);
-                Surf_coord_pt[i] = TTF_RenderText_Solid(police, msg_coord_pt[i], black);
-                Rect_coord_pt[i].x =  view[i].x_2D;
-                Rect_coord_pt[i].y =  view[i].y_2D;
-                text_coord_pt[i] = SDL_CreateTextureFromSurface(ren, Surf_coord_pt[i]);
-                SDL_FreeSurface(Surf_coord_pt[i]);
-                SDL_RenderCopy(ren, text_coord_pt[i], NULL, &Rect_coord_pt[i]);
-                SDL_DestroyTexture(text_coord_pt[i]);
-            }
-            SDL_RenderPresent(ren);
-            SDL_Delay(1000/FRAME_RATE);
+            in.key[SDLK_SPACE] = 0;
+            if(pause == 0)
+                pause = 1;
+            else
+                pause = 0;
         }
-        else
+        
+        if(!pause)
         {
-            SDL_Delay(Actual_time - Previous_time - 1000/FRAME_RATE);
+            if(Actual_time - Previous_time > 1000/FRAME_RATE)
+            {
+                Previous_time = Actual_time;
+                
+                // Moving the cube
+                for(int i = 0; i<8; i++)
+                {
+                    rotate(0, 0, 1, angle, &model[i]);
+                    rotate(0, 1, 0, angle, &model[i]);
+                    rotate(1, 0, 0, angle, &model[i]);
+                    
+                    translate(angle, angle, angle, &model[i]);
+                }
+                
+                // Moving the camera
+                for(int i = 0; i<8; i++)
+                {
+                    view[i] = model[i];
+                    rotate(0, 0, 1, camera.angleX, &view[i]);
+                    camera.angleX++;
+                    translate(camera.posX, camera.posY, camera.posZ, &view[i]);
+                }
+                
+                for(int i = 0; i<8; i++)
+                {
+                    model[i].depth = sqrtf(pow(view[i].x_3D, 2)+pow(view[i].y_3D, 2)+pow(view[i].z_3D, 2));
+                    model[i].x_2D = CONVERT_POS_X((view[i].depth*view[i].x_3D)/(view[i].depth+view[i].y_3D));
+                    model[i].y_2D = CONVERT_POS_Y((view[i].depth*view[i].z_3D*(-1))/(view[i].depth+view[i].y_3D));
+                }
+                
+                draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan1);
+                draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan2);
+                draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan3);
+                draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan4);
+                draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan5);
+                draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan6);
+                draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan7);
+                draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan8);
+                draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan9);
+                draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan10);
+                draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan11);
+                draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan12);
+                
+                for(int i = 0; i<SCREEN_WIDTH; i++)
+                {
+                    for(int j = 0; j<SCREEN_HEIGHT; j++)
+                    {
+                        index = j*SCREEN_HEIGHT+i;
+                        SDL_SetRenderDrawColor(ren, canevas[index].color.r, canevas[index].color.g, canevas[index].color.b, 255);
+                        //SDL_SetRenderDrawColor(ren, canevas[index].depth, canevas[index].depth, canevas[index].depth, 255);
+                        SDL_RenderDrawPoint(ren, i, j);
+                        canevas[j*SCREEN_HEIGHT+i].color.r = 220;                   // We have displayed the point. Clear it!
+                        canevas[j*SCREEN_HEIGHT+i].color.g = 220;                   // We have displayed the point. Clear it!
+                        canevas[j*SCREEN_HEIGHT+i].color.b = 220;                   // We have displayed the point. Clear it!
+                        canevas[j*SCREEN_HEIGHT+i].depth = MAX_DEPTH;
+                    }
+                }
+                for (int i = 0; i<8; i++)
+                {
+                    sprintf(msg_coord_pt[i], "X: %.1lf, Y: %.1lf, Z: %.1lf, D: %.1lf", model[i].x_3D, model[i].y_3D, model[i].z_3D, model[i].depth);
+                    //sprintf(msg_coord_pt[i], "%lf", model[i].depth);
+                    Surf_coord_pt[i] = TTF_RenderText_Solid(police, msg_coord_pt[i], black);
+                    Rect_coord_pt[i].x =  view[i].x_2D;
+                    Rect_coord_pt[i].y =  view[i].y_2D;
+                    text_coord_pt[i] = SDL_CreateTextureFromSurface(ren, Surf_coord_pt[i]);
+                    SDL_FreeSurface(Surf_coord_pt[i]);
+                    SDL_RenderCopy(ren, text_coord_pt[i], NULL, &Rect_coord_pt[i]);
+                    SDL_DestroyTexture(text_coord_pt[i]);
+                }
+                SDL_RenderPresent(ren);
+                SDL_Delay(1000/FRAME_RATE);
+            }
+            else
+            {
+                SDL_Delay(Actual_time - Previous_time - 1000/FRAME_RATE);
+            }
         }
     }
-    pause();
+    
     SDL_DestroyRenderer(ren);
     SDL_DestroyWindow(win);
     TTF_CloseFont(police);
