@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#define SCREEN_WIDTH            640                                             // Window width
+#define SCREEN_WIDTH            600                                             // Window width
 #define SCREEN_HEIGHT           480                                             // Window heigh
 #define FRAME_RATE              60
 #define DEG_TO_RAD              0.01745329
@@ -11,6 +11,7 @@
 
 #define CONVERT_POS_X(pos_X)    pos_X+SCREEN_WIDTH/2
 #define CONVERT_POS_Y(pos_Y)    pos_Y+SCREEN_HEIGHT/2
+#define GET_INDEX(x, y)         SCREEN_WIDTH*y+x
 
 typedef struct Input Input;
 struct Input
@@ -156,7 +157,8 @@ void draw2DTriangle(m3DPoint *canevas, int w, int h, plan *p)
         y1.y_2D = (int)((double)(coef2*i))+Left->y_2D;                          // Calculate the beginning of the line
         tempDepth = (Right->depth+Center->depth+Left->depth)/3;                 // Approximation of the distance of the plane to the camera
         
-        index  = (int)(y1.y_2D)*h+i+(int)Left->x_2D;
+        //index  = (int)(y1.y_2D)*h+i+(int)Left->x_2D;
+        index = GET_INDEX(i,(int)(y1.y_2D))+(int)Left->x_2D;
         if(canevas[index].depth > tempDepth)
         {
             canevas[index].color = p->color;
@@ -174,7 +176,8 @@ void draw2DTriangle(m3DPoint *canevas, int w, int h, plan *p)
             }
             for(j = y1.y_2D; j<y2.y_2D; j++)
             {
-                index = (int)(j*h+i+(int)Left->x_2D);
+                //index = (int)(j*h+i+(int)Left->x_2D);
+                index = GET_INDEX(i,j)+(int)Left->x_2D;
                 if(canevas[index].depth > tempDepth)
                 {
                     canevas[index].color = p->color;
@@ -193,7 +196,8 @@ void draw2DTriangle(m3DPoint *canevas, int w, int h, plan *p)
             }
             for(j = y1.y_2D; j<y2.y_2D; j++)
             {
-                index = (int)(j*h+i+(int)Left->x_2D);
+                //index = (int)(j*h+i+(int)Left->x_2D);
+                index = GET_INDEX(i,j)+(int)Left->x_2D;
                 if(canevas[index].depth > tempDepth)
                 {
                     canevas[index].color = p->color;
@@ -333,10 +337,11 @@ int main(int argc, char **argv)
     struct m3DPoint *canevas = malloc(SCREEN_WIDTH*SCREEN_HEIGHT*sizeof(struct m3DPoint));  // Have to use dynamic allocation 'cause of too big table!
     TTF_Font *police = NULL;
     int index = 0;
+    int display = 0;
     
     camera camera;
     camera.posX = 0;
-    camera.posY = 300;
+    camera.posY = 100;
     camera.posZ = 0;
     
     m3DPoint model[8];
@@ -542,13 +547,13 @@ int main(int argc, char **argv)
         text_coord_pt[i] = SDL_CreateTextureFromSurface(ren, Surf_coord_pt[i]);
     }
     
-    angle = 1;
+    angle = 10;
     while(!in.key[SDLK_ESCAPE] && !in.quit)
     {
         Actual_time = SDL_GetTicks();
         
         UpdateEvents(&in);
-        if(in.key[SDLK_SPACE])
+        if(in.key[SDLK_SPACE])                                                  // To pause the program
         {
             in.key[SDLK_SPACE] = 0;
             if(pause == 0)
@@ -578,7 +583,7 @@ int main(int argc, char **argv)
                 {
                     view[i] = model[i];
                     rotate(0, 0, 1, camera.angleX, &view[i]);
-                    camera.angleX++;
+                    camera.angleX--;
                     translate(camera.posX, camera.posY, camera.posZ, &view[i]);
                 }
                 
@@ -606,14 +611,33 @@ int main(int argc, char **argv)
                 {
                     for(int j = 0; j<SCREEN_HEIGHT; j++)
                     {
-                        index = j*SCREEN_HEIGHT+i;
+                        //index = j*SCREEN_HEIGHT+i;
+                        index = GET_INDEX(i,j);
                         SDL_SetRenderDrawColor(ren, canevas[index].color.r, canevas[index].color.g, canevas[index].color.b, 255);
                         //SDL_SetRenderDrawColor(ren, canevas[index].depth, canevas[index].depth, canevas[index].depth, 255);
                         SDL_RenderDrawPoint(ren, i, j);
-                        canevas[j*SCREEN_HEIGHT+i].color.r = 220;                   // We have displayed the point. Clear it!
-                        canevas[j*SCREEN_HEIGHT+i].color.g = 220;                   // We have displayed the point. Clear it!
-                        canevas[j*SCREEN_HEIGHT+i].color.b = 220;                   // We have displayed the point. Clear it!
-                        canevas[j*SCREEN_HEIGHT+i].depth = MAX_DEPTH;
+                        /*
+                        if(in.key[SDLK_p])                                      // To display depth buffer
+                        {
+                            pause = 1;
+                            in.key[SDLK_p] = 0;
+                            for(int k = 0; k<SCREEN_WIDTH; k++)
+                            {
+                                for(int l = 0; l<SCREEN_HEIGHT; l++)
+                                {
+                                    if(canevas[l*SCREEN_HEIGHT+k].depth != 1000)
+                                        printf("X");
+                                    else
+                                        printf(" ");
+                                }
+                                printf("\n%d: ", k);
+                            }
+                            printf("end\n");
+                        }*/
+                        canevas[GET_INDEX(i,j)].color.r = 220;               // We have displayed the point. Clear it!
+                        canevas[GET_INDEX(i,j)].color.g = 220;               // We have displayed the point. Clear it!
+                        canevas[GET_INDEX(i,j)].color.b = 220;               // We have displayed the point. Clear it!
+                        canevas[GET_INDEX(i,j)].depth = MAX_DEPTH;
                     }
                 }
                 for (int i = 0; i<8; i++)
