@@ -8,6 +8,7 @@
 #define FRAME_RATE              60
 #define DEG_TO_RAD              0.01745329
 #define MAX_DEPTH               1000
+#define MOUSE_SENSITIVITY       5
 
 #define CONVERT_POS_X(pos_X)    pos_X+SCREEN_WIDTH/2
 #define CONVERT_POS_Y(pos_Y)    pos_Y+SCREEN_HEIGHT/2
@@ -337,7 +338,9 @@ int main(int argc, char **argv)
     struct m3DPoint *canevas = malloc(SCREEN_WIDTH*SCREEN_HEIGHT*sizeof(struct m3DPoint));  // Have to use dynamic allocation 'cause of too big table!
     TTF_Font *police = NULL;
     int index = 0;
-    int display = 0;
+    //int display = 0;
+    int prevMouseX = 0;
+    int prevMouseY = 0;
     
     camera camera;
     camera.posX = 0;
@@ -552,6 +555,8 @@ int main(int argc, char **argv)
     {
         Actual_time = SDL_GetTicks();
         
+        prevMouseX = in.mouseX;
+        prevMouseY = in.mouseY;
         UpdateEvents(&in);
         if(in.key[SDLK_SPACE])                                                  // To pause the program
         {
@@ -562,6 +567,7 @@ int main(int argc, char **argv)
                 pause = 0;
         }
         
+        
         if(!pause)
         {
             if(Actual_time - Previous_time > 1000/FRAME_RATE)
@@ -571,11 +577,11 @@ int main(int argc, char **argv)
                 // Moving the cube
                 for(int i = 0; i<8; i++)
                 {
-                    rotate(0, 0, 1, angle, &model[i]);
-                    rotate(0, 1, 0, angle, &model[i]);
-                    rotate(1, 0, 0, angle, &model[i]);
+                    //rotate(0, 0, 1, angle, &model[i]);
+                    //rotate(0, 1, 0, angle, &model[i]);
+                    //rotate(1, 0, 0, angle, &model[i]);
                     
-                    translate(angle, angle, angle, &model[i]);
+                    //translate(angle, angle, angle, &model[i]);
                 }
                 
                 // Moving the camera
@@ -583,7 +589,9 @@ int main(int argc, char **argv)
                 {
                     view[i] = model[i];
                     rotate(0, 0, 1, camera.angleX, &view[i]);
-                    camera.angleX--;
+                    rotate(1, 0, 0, camera.angleY, &view[i]);
+                    camera.angleX += (prevMouseX - in.mouseX)/MOUSE_SENSITIVITY;
+                    camera.angleY += (prevMouseY - in.mouseY)/MOUSE_SENSITIVITY;
                     translate(camera.posX, camera.posY, camera.posZ, &view[i]);
                 }
                 
