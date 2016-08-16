@@ -8,7 +8,7 @@
 #define FRAME_RATE              60
 #define DEG_TO_RAD              0.01745329
 #define MAX_DEPTH               1000
-#define MOUSE_SENSITIVITY       5
+#define MOUSE_SENSITIVITY       1
 
 #define CONVERT_POS_X(pos_X)    pos_X+SCREEN_WIDTH/2
 #define CONVERT_POS_Y(pos_Y)    pos_Y+SCREEN_HEIGHT/2
@@ -83,126 +83,129 @@ void draw2DTriangle(m3DPoint *canevas, int w, int h, plan *p)
     int i = 0;
     int j = 0;
     
-    // We sort points from left to right
-    if((p->pt1->x_2D <= p->pt2->x_2D) && (p->pt1->x_2D <= p->pt3->x_2D))
+    // If all points are out of screen -> We don't draw something
+    if(((p->pt1->x_2D < SCREEN_WIDTH && p->pt1->x_2D > 0) && (p->pt1->y_2D < SCREEN_HEIGHT && p->pt1->y_2D > 0)) &&
+       ((p->pt2->x_2D < SCREEN_WIDTH && p->pt2->x_2D > 0) && (p->pt2->y_2D < SCREEN_HEIGHT && p->pt2->y_2D > 0)) &&
+       ((p->pt3->x_2D < SCREEN_WIDTH && p->pt3->x_2D > 0) && (p->pt3->y_2D < SCREEN_HEIGHT && p->pt3->y_2D > 0)))
     {
-        Left = p->pt1;
-        if(p->pt2->x_2D < p->pt3->x_2D)
+        // We sort points from left to right
+        if((p->pt1->x_2D <= p->pt2->x_2D) && (p->pt1->x_2D <= p->pt3->x_2D))
         {
-            Center = p->pt2;
-            Right = p->pt3;
-        }
-        else
-        {
-            Center = p->pt3;
-            Right = p->pt2;
-        }
-    }
-    else if((p->pt2->x_2D <= p->pt3->x_2D) && (p->pt2->x_2D <= p->pt1->x_2D))
-    {
-        Left = p->pt2;
-        if(p->pt1->x_2D < p->pt3->x_2D)
-        {
-            Center = p->pt1;
-            Right = p->pt3;
-        }
-        else
-        {
-            Center = p->pt3;
-            Right = p->pt1;
-        }
-    }
-    else
-    {
-        Left = p->pt3;
-        if(p->pt2->x_2D < p->pt1->x_2D)
-        {
-            Center = p->pt2;
-            Right = p->pt1;
-        }
-        else
-        {
-            Center = p->pt1;
-            Right = p->pt2;
-        }
-    }
-    
-    // We calculate coef of each side of the triangle
-    float coef1 = 0.0, coef2 = 0.0, coef3 = 0.0;
-    int L = 0;
-    if(Center->x_2D != Left->x_2D)
-    {
-        coef1 = ((float)Center->y_2D-(float)Left->y_2D)/((float)Center->x_2D-(float)Left->x_2D);
-        L = sqrt(pow(Center->x_3D-Left->x_3D, 2)+pow(Center->y_3D-Left->y_3D, 2)+pow(Center->z_3D-Left->z_3D, 2));
-    }
-    if(Right->x_2D != Left->x_2D)
-    {
-        coef2 = ((float)Right->y_2D-(float)Left->y_2D)/((float)Right->x_2D-(float)Left->x_2D);
-        L = sqrt(pow(Right->x_3D-Left->x_3D, 2)+pow(Right->y_3D-Left->y_3D, 2)+pow(Right->z_3D-Left->z_3D, 2));
-    }
-    if(Right->x_2D != Center->x_2D)
-    {
-        coef3 = ((float)Right->y_2D-(float)Center->y_2D)/((float)Right->x_2D-(float)Center->x_2D);
-        L = sqrt(pow(Right->x_3D-Center->x_3D, 2)+pow(Right->y_3D-Center->y_3D, 2)+pow(Right->z_3D-Center->z_3D, 2));
-    }
-    
-    // We start to fill it
-    for (i = 0; i<(Right->x_2D-Left->x_2D); i++)
-    {
-        m3DPoint y1;
-        m3DPoint y2;
-        m3DPoint ytemp;
-        float tempDepth = 0;
-        int index = 0;
-        
-        y1.y_2D = (int)((double)(coef2*i))+Left->y_2D;                          // Calculate the beginning of the line
-        tempDepth = (Right->depth+Center->depth+Left->depth)/3;                 // Approximation of the distance of the plane to the camera
-        
-        //index  = (int)(y1.y_2D)*h+i+(int)Left->x_2D;
-        index = GET_INDEX(i,(int)(y1.y_2D))+(int)Left->x_2D;
-        if(canevas[index].depth > tempDepth)
-        {
-            canevas[index].color = p->color;
-            canevas[index].depth = tempDepth;
-        }
-        
-        if(i <= Center->x_2D-Left->x_2D)
-        {
-            y2.y_2D = (int)((double)(coef1*i)+Left->y_2D);                      // Calculate the end of the line for the first part
-            if(y1.y_2D >= y2.y_2D)
+            Left = p->pt1;
+            if(p->pt2->x_2D < p->pt3->x_2D)
             {
-                ytemp = y1;
-                y1 = y2;
-                y2 = ytemp;
+                Center = p->pt2;
+                Right = p->pt3;
             }
-            for(j = y1.y_2D; j<y2.y_2D; j++)
+            else
             {
-                //index = (int)(j*h+i+(int)Left->x_2D);
-                index = GET_INDEX(i,j)+(int)Left->x_2D;
-                if(canevas[index].depth > tempDepth)
+                Center = p->pt3;
+                Right = p->pt2;
+            }
+        }
+        else if((p->pt2->x_2D <= p->pt3->x_2D) && (p->pt2->x_2D <= p->pt1->x_2D))
+        {
+            Left = p->pt2;
+            if(p->pt1->x_2D < p->pt3->x_2D)
+            {
+                Center = p->pt1;
+                Right = p->pt3;
+            }
+            else
+            {
+                Center = p->pt3;
+                Right = p->pt1;
+            }
+        }
+        else
+        {
+            Left = p->pt3;
+            if(p->pt2->x_2D < p->pt1->x_2D)
+            {
+                Center = p->pt2;
+                Right = p->pt1;
+            }
+            else
+            {
+                Center = p->pt1;
+                Right = p->pt2;
+            }
+        }
+        
+        // We calculate coef of each side of the triangle
+        float coef1 = 0.0, coef2 = 0.0, coef3 = 0.0;
+        int L = 0;
+        if(Center->x_2D != Left->x_2D)
+        {
+            coef1 = ((float)Center->y_2D-(float)Left->y_2D)/((float)Center->x_2D-(float)Left->x_2D);
+            L = sqrt(pow(Center->x_3D-Left->x_3D, 2)+pow(Center->y_3D-Left->y_3D, 2)+pow(Center->z_3D-Left->z_3D, 2));
+        }
+        if(Right->x_2D != Left->x_2D)
+        {
+            coef2 = ((float)Right->y_2D-(float)Left->y_2D)/((float)Right->x_2D-(float)Left->x_2D);
+            L = sqrt(pow(Right->x_3D-Left->x_3D, 2)+pow(Right->y_3D-Left->y_3D, 2)+pow(Right->z_3D-Left->z_3D, 2));
+        }
+        if(Right->x_2D != Center->x_2D)
+        {
+            coef3 = ((float)Right->y_2D-(float)Center->y_2D)/((float)Right->x_2D-(float)Center->x_2D);
+            L = sqrt(pow(Right->x_3D-Center->x_3D, 2)+pow(Right->y_3D-Center->y_3D, 2)+pow(Right->z_3D-Center->z_3D, 2));
+        }
+        
+        // We start to fill it
+        for (i = 0; i<(Right->x_2D-Left->x_2D); i++)
+        {
+            m3DPoint y1;
+            m3DPoint y2;
+            m3DPoint ytemp;
+            float tempDepth = 0;
+            int index = 0;
+            
+            y1.y_2D = (int)((double)(coef2*i))+Left->y_2D;                          // Calculate the beginning of the line
+            tempDepth = (Right->depth+Center->depth+Left->depth)/3;                 // Approximation of the distance of the plane to the camera
+            
+            index = GET_INDEX(i,(int)(y1.y_2D))+(int)Left->x_2D;
+            if(canevas[index].depth > tempDepth)
+            {
+                canevas[index].color = p->color;
+                canevas[index].depth = tempDepth;
+            }
+            
+            if(i <= Center->x_2D-Left->x_2D)
+            {
+                y2.y_2D = (int)((double)(coef1*i)+Left->y_2D);                      // Calculate the end of the line for the first part
+                if(y1.y_2D >= y2.y_2D)
                 {
-                    canevas[index].color = p->color;
-                    canevas[index].depth = tempDepth;
+                    ytemp = y1;
+                    y1 = y2;
+                    y2 = ytemp;
+                }
+                for(j = y1.y_2D; j<y2.y_2D; j++)
+                {
+                    index = GET_INDEX(i,j)+(int)Left->x_2D;
+                    if(canevas[index].depth > tempDepth)
+                    {
+                        canevas[index].color = p->color;
+                        canevas[index].depth = tempDepth;
+                    }
                 }
             }
-        }
-        else
-        {
-            y2.y_2D = (int)((double)(coef3*(i-Center->x_2D+Left->x_2D)+Center->y_2D));// Calculate the end of the line for the second part
-            if(y1.y_2D >= y2.y_2D)
+            else
             {
-                ytemp = y1;
-                y1 = y2;
-                y2 = ytemp;
-            }
-            for(j = y1.y_2D; j<y2.y_2D; j++)
-            {
-                //index = (int)(j*h+i+(int)Left->x_2D);
-                index = GET_INDEX(i,j)+(int)Left->x_2D;
-                if(canevas[index].depth > tempDepth)
+                y2.y_2D = (int)((double)(coef3*(i-Center->x_2D+Left->x_2D)+Center->y_2D));// Calculate the end of the line for the second part
+                if(y1.y_2D >= y2.y_2D)
                 {
-                    canevas[index].color = p->color;
-                    canevas[index].depth = tempDepth;
+                    ytemp = y1;
+                    y1 = y2;
+                    y2 = ytemp;
+                }
+                for(j = y1.y_2D; j<y2.y_2D; j++)
+                {
+                    index = GET_INDEX(i,j)+(int)Left->x_2D;
+                    if(canevas[index].depth > tempDepth)
+                    {
+                        canevas[index].color = p->color;
+                        canevas[index].depth = tempDepth;
+                    }
                 }
             }
         }
@@ -550,7 +553,7 @@ int main(int argc, char **argv)
         text_coord_pt[i] = SDL_CreateTextureFromSurface(ren, Surf_coord_pt[i]);
     }
     
-    angle = 10;
+    angle = 1;
     while(!in.key[SDLK_ESCAPE] && !in.quit)
     {
         Actual_time = SDL_GetTicks();
@@ -577,27 +580,28 @@ int main(int argc, char **argv)
                 // Moving the cube
                 for(int i = 0; i<8; i++)
                 {
-                    //rotate(0, 0, 1, angle, &model[i]);
-                    //rotate(0, 1, 0, angle, &model[i]);
-                    //rotate(1, 0, 0, angle, &model[i]);
+                   /* rotate(0, 0, 1, angle, &model[i]);
+                    rotate(0, 1, 0, angle, &model[i]);
+                    rotate(1, 0, 0, angle, &model[i]);
                     
-                    //translate(angle, angle, angle, &model[i]);
+                    translate(angle, angle, angle, &model[i]);*/
                 }
                 
                 // Moving the camera
                 for(int i = 0; i<8; i++)
                 {
                     view[i] = model[i];
+                    translate(camera.posX, camera.posY, camera.posZ, &view[i]);
                     rotate(0, 0, 1, camera.angleX, &view[i]);
                     rotate(1, 0, 0, camera.angleY, &view[i]);
-                    camera.angleX += (prevMouseX - in.mouseX)/MOUSE_SENSITIVITY;
-                    camera.angleY += (prevMouseY - in.mouseY)/MOUSE_SENSITIVITY;
-                    translate(camera.posX, camera.posY, camera.posZ, &view[i]);
                 }
+                camera.angleX += (prevMouseX - in.mouseX)/MOUSE_SENSITIVITY;
+                camera.angleY += (prevMouseY - in.mouseY)/MOUSE_SENSITIVITY;
                 
+                // Projection on the screen
                 for(int i = 0; i<8; i++)
                 {
-                    model[i].depth = sqrtf(pow(view[i].x_3D, 2)+pow(view[i].y_3D, 2)+pow(view[i].z_3D, 2));
+                    model[i].depth = sqrtf(pow(view[i].x_3D + camera.posX, 2)+pow(view[i].y_3D + camera.posY, 2)+pow(view[i].z_3D + camera.posZ, 2));
                     model[i].x_2D = CONVERT_POS_X((view[i].depth*view[i].x_3D)/(view[i].depth+view[i].y_3D));
                     model[i].y_2D = CONVERT_POS_Y((view[i].depth*view[i].z_3D*(-1))/(view[i].depth+view[i].y_3D));
                 }
@@ -619,29 +623,10 @@ int main(int argc, char **argv)
                 {
                     for(int j = 0; j<SCREEN_HEIGHT; j++)
                     {
-                        //index = j*SCREEN_HEIGHT+i;
                         index = GET_INDEX(i,j);
                         SDL_SetRenderDrawColor(ren, canevas[index].color.r, canevas[index].color.g, canevas[index].color.b, 255);
-                        //SDL_SetRenderDrawColor(ren, canevas[index].depth, canevas[index].depth, canevas[index].depth, 255);
                         SDL_RenderDrawPoint(ren, i, j);
-                        /*
-                        if(in.key[SDLK_p])                                      // To display depth buffer
-                        {
-                            pause = 1;
-                            in.key[SDLK_p] = 0;
-                            for(int k = 0; k<SCREEN_WIDTH; k++)
-                            {
-                                for(int l = 0; l<SCREEN_HEIGHT; l++)
-                                {
-                                    if(canevas[l*SCREEN_HEIGHT+k].depth != 1000)
-                                        printf("X");
-                                    else
-                                        printf(" ");
-                                }
-                                printf("\n%d: ", k);
-                            }
-                            printf("end\n");
-                        }*/
+
                         canevas[GET_INDEX(i,j)].color.r = 220;               // We have displayed the point. Clear it!
                         canevas[GET_INDEX(i,j)].color.g = 220;               // We have displayed the point. Clear it!
                         canevas[GET_INDEX(i,j)].color.b = 220;               // We have displayed the point. Clear it!
@@ -650,7 +635,7 @@ int main(int argc, char **argv)
                 }
                 for (int i = 0; i<8; i++)
                 {
-                    sprintf(msg_coord_pt[i], "X: %.1lf, Y: %.1lf, Z: %.1lf, D: %.1lf", model[i].x_3D, model[i].y_3D, model[i].z_3D, model[i].depth);
+                    sprintf(msg_coord_pt[i], "X: %.1lf, Y: %.1lf, Z: %.1lf, D: %.1lf", view[i].x_3D, view[i].y_3D, view[i].z_3D, view[i].depth);
                     //sprintf(msg_coord_pt[i], "%lf", model[i].depth);
                     Surf_coord_pt[i] = TTF_RenderText_Solid(police, msg_coord_pt[i], black);
                     Rect_coord_pt[i].x =  view[i].x_2D;
