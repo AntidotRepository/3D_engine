@@ -7,12 +7,12 @@
 #define SCREEN_HEIGHT           480                                             // Window heigh
 #define FRAME_RATE              60
 #define DEG_TO_RAD              0.01745329
-#define MAX_DEPTH               1000
+#define MAX_DEPTH               5000
 #define MOUSE_SENSITIVITY       1
 
 #define CONVERT_POS_X(pos_X)    pos_X+SCREEN_WIDTH/2
 #define CONVERT_POS_Y(pos_Y)    pos_Y+SCREEN_HEIGHT/2
-#define GET_INDEX(x, y)         SCREEN_WIDTH*y+x
+
 
 typedef struct Input Input;
 struct Input
@@ -72,6 +72,17 @@ struct plan
     // Add normal vector
 };
 
+int get_index(x, y)
+{
+    if(x<0)
+        x = 0;
+    if(y<0)
+        y = 0;
+    if(x>=SCREEN_WIDTH || y>=SCREEN_HEIGHT)
+        return SCREEN_HEIGHT*SCREEN_WIDTH-1;
+    return SCREEN_WIDTH*y+x;
+}
+
 /**
  *  \fn         drawTriangle
  *  \brief      Draw a triangle
@@ -84,9 +95,7 @@ void draw2DTriangle(m3DPoint *canevas, int w, int h, plan *p)
     int j = 0;
     
     // If all points are out of screen -> We don't draw something
-    if(((p->pt1->x_2D < SCREEN_WIDTH && p->pt1->x_2D > 0) && (p->pt1->y_2D < SCREEN_HEIGHT && p->pt1->y_2D > 0)) &&
-       ((p->pt2->x_2D < SCREEN_WIDTH && p->pt2->x_2D > 0) && (p->pt2->y_2D < SCREEN_HEIGHT && p->pt2->y_2D > 0)) &&
-       ((p->pt3->x_2D < SCREEN_WIDTH && p->pt3->x_2D > 0) && (p->pt3->y_2D < SCREEN_HEIGHT && p->pt3->y_2D > 0)))
+    if(p->pt1->depth > 0 || p->pt2->depth > 0 || p->pt3->depth > 0)
     {
         // We sort points from left to right
         if((p->pt1->x_2D <= p->pt2->x_2D) && (p->pt1->x_2D <= p->pt3->x_2D))
@@ -163,7 +172,7 @@ void draw2DTriangle(m3DPoint *canevas, int w, int h, plan *p)
             y1.y_2D = (int)((double)(coef2*i))+Left->y_2D;                          // Calculate the beginning of the line
             tempDepth = (Right->depth+Center->depth+Left->depth)/3;                 // Approximation of the distance of the plane to the camera
             
-            index = GET_INDEX(i,(int)(y1.y_2D))+(int)Left->x_2D;
+            index = get_index(i+(int)Left->x_2D,(int)(y1.y_2D));
             if(canevas[index].depth > tempDepth)
             {
                 canevas[index].color = p->color;
@@ -181,7 +190,7 @@ void draw2DTriangle(m3DPoint *canevas, int w, int h, plan *p)
                 }
                 for(j = y1.y_2D; j<y2.y_2D; j++)
                 {
-                    index = GET_INDEX(i,j)+(int)Left->x_2D;
+                    index = get_index(i+(int)Left->x_2D,j);
                     if(canevas[index].depth > tempDepth)
                     {
                         canevas[index].color = p->color;
@@ -200,7 +209,7 @@ void draw2DTriangle(m3DPoint *canevas, int w, int h, plan *p)
                 }
                 for(j = y1.y_2D; j<y2.y_2D; j++)
                 {
-                    index = GET_INDEX(i,j)+(int)Left->x_2D;
+                    index = get_index(i+(int)Left->x_2D,j);
                     if(canevas[index].depth > tempDepth)
                     {
                         canevas[index].color = p->color;
@@ -347,43 +356,62 @@ int main(int argc, char **argv)
     
     camera camera;
     camera.posX = 0;
-    camera.posY = 100;
+    camera.posY = 1000;
     camera.posZ = 0;
     
     m3DPoint model[8];
-    m3DPoint view[8];
+    m3DPoint pyramid[4];
+    m3DPoint view[12];
     
-    model[0].x_3D =  50;
-    model[0].y_3D =  50;
-    model[0].z_3D = -50;
+    // Cube
+    model[0].x_3D =  500;
+    model[0].y_3D =  500;
+    model[0].z_3D = -500;
     
-    model[1].x_3D = -50;
-    model[1].y_3D =  50;
-    model[1].z_3D = -50;
+    model[1].x_3D = -500;
+    model[1].y_3D =  500;
+    model[1].z_3D = -500;
     
-    model[2].x_3D = -50;
-    model[2].y_3D = -50;
-    model[2].z_3D = -50;
+    model[2].x_3D = -500;
+    model[2].y_3D = -500;
+    model[2].z_3D = -500;
     
-    model[3].x_3D =  50;
-    model[3].y_3D = -50;
-    model[3].z_3D = -50;
+    model[3].x_3D =  500;
+    model[3].y_3D = -500;
+    model[3].z_3D = -500;
     
-    model[4].x_3D =  50;
-    model[4].y_3D =  50;
-    model[4].z_3D =  50;
+    model[4].x_3D =  500;
+    model[4].y_3D =  500;
+    model[4].z_3D =  500;
     
-    model[5].x_3D = -50;
-    model[5].y_3D =  50;
-    model[5].z_3D =  50;
+    model[5].x_3D = -500;
+    model[5].y_3D =  500;
+    model[5].z_3D =  500;
     
-    model[6].x_3D = -50;
-    model[6].y_3D = -50;
-    model[6].z_3D =  50;
+    model[6].x_3D = -500;
+    model[6].y_3D = -500;
+    model[6].z_3D =  500;
     
-    model[7].x_3D =  50;
-    model[7].y_3D = -50;
-    model[7].z_3D =  50;
+    model[7].x_3D =  500;
+    model[7].y_3D = -500;
+    model[7].z_3D =  500;
+    
+    // Pyramide
+    pyramid[0].x_3D = 0;
+    pyramid[0].y_3D = 0;
+    pyramid[0].z_3D = 0;
+    
+    pyramid[1].x_3D = 20;
+    pyramid[1].y_3D = 0;
+    pyramid[1].z_3D = 0;
+
+    pyramid[2].x_3D = 0;
+    pyramid[2].y_3D = 20;
+    pyramid[2].z_3D = 0;
+    
+    pyramid[3].x_3D = 0;
+    pyramid[3].y_3D = 0;
+    pyramid[3].z_3D = 20;
     
     plan plan1;
     plan plan2;
@@ -482,6 +510,39 @@ int main(int argc, char **argv)
     plan12.color.g = 0;
     plan12.color.b = 127;
     
+    plan planP1;
+    plan planP2;
+    plan planP3;
+    plan planP4;
+    
+    planP1.pt1 = &pyramid[0];
+    planP1.pt2 = &pyramid[1];
+    planP1.pt3 = &pyramid[2];
+    planP1.color.r = 255;
+    planP1.color.g = 0;
+    planP1.color.b = 0;
+    
+    planP2.pt1 = &pyramid[0];
+    planP2.pt2 = &pyramid[2];
+    planP2.pt3 = &pyramid[3];
+    planP2.color.r = 255;
+    planP2.color.g = 0;
+    planP2.color.b = 0;
+    
+    planP3.pt1 = &pyramid[3];
+    planP3.pt2 = &pyramid[1];
+    planP3.pt3 = &pyramid[2];
+    planP3.color.r = 255;
+    planP3.color.g = 0;
+    planP3.color.b = 0;
+    
+    planP4.pt1 = &pyramid[0];
+    planP4.pt2 = &pyramid[1];
+    planP4.pt3 = &pyramid[3];
+    planP4.color.r = 255;
+    planP4.color.g = 0;
+    planP4.color.b = 0;
+    
     calc_coef_plan(&plan1);
     calc_coef_plan(&plan2);
     calc_coef_plan(&plan3);
@@ -548,7 +609,7 @@ int main(int argc, char **argv)
     for(int i  = 0; i<8; i++)
     {
         Surf_coord_pt[i] = TTF_RenderText_Blended(police, "", black);
-        Rect_coord_pt[i].w = 150;
+        Rect_coord_pt[i].w = 40;
         Rect_coord_pt[i].h = 15;
         text_coord_pt[i] = SDL_CreateTextureFromSurface(ren, Surf_coord_pt[i]);
     }
@@ -580,17 +641,24 @@ int main(int argc, char **argv)
                 // Moving the cube
                 for(int i = 0; i<8; i++)
                 {
-                   /* rotate(0, 0, 1, angle, &model[i]);
-                    rotate(0, 1, 0, angle, &model[i]);
-                    rotate(1, 0, 0, angle, &model[i]);
+                    //rotate(0, 0, 1, angle, &model[i]);
+                    //rotate(0, 1, 0, angle, &model[i]);
+                    //rotate(1, 0, 0, angle, &model[i]);
                     
-                    translate(angle, angle, angle, &model[i]);*/
+                   // translate(angle, angle, angle, &model[i]);
+                    view[i] = model[i];
+                }
+                
+                // Moving the pyramid
+                for(int i = 0; i<4; i++)
+                {
+                    view[i+8] = pyramid[i];
                 }
                 
                 // Moving the camera
                 for(int i = 0; i<8; i++)
                 {
-                    view[i] = model[i];
+                    //view[i] = model[i];
                     translate(camera.posX, camera.posY, camera.posZ, &view[i]);
                     rotate(0, 0, 1, camera.angleX, &view[i]);
                     rotate(1, 0, 0, camera.angleY, &view[i]);
@@ -598,14 +666,27 @@ int main(int argc, char **argv)
                 camera.angleX += (prevMouseX - in.mouseX)/MOUSE_SENSITIVITY;
                 camera.angleY += (prevMouseY - in.mouseY)/MOUSE_SENSITIVITY;
                 
-                // Projection on the screen
+                // Projection of the cube on the screen
                 for(int i = 0; i<8; i++)
                 {
                     model[i].depth = sqrtf(pow(view[i].x_3D + camera.posX, 2)+pow(view[i].y_3D + camera.posY, 2)+pow(view[i].z_3D + camera.posZ, 2));
-                    model[i].x_2D = CONVERT_POS_X((view[i].depth*view[i].x_3D)/(view[i].depth+view[i].y_3D));
-                    model[i].y_2D = CONVERT_POS_Y((view[i].depth*view[i].z_3D*(-1))/(view[i].depth+view[i].y_3D));
+                    //if(camera.posY-view[i+8].y_3D< 0)
+                    //    model[i].depth *= -1;
+                    //printf("%lf\n", model[i].depth);
+                    model[i].x_2D = CONVERT_POS_X((model[i].depth*view[i].x_3D)/(model[i].depth+view[i].y_3D));
+                    model[i].y_2D = CONVERT_POS_Y((model[i].depth*view[i].z_3D*(-1))/(model[i].depth+view[i].y_3D));
+#warning obligé de mettre un coef multiplicateur pour avoir d'avantages l'impression d'être dans la scène
                 }
                 
+                // Projection of the pyramid on the screen
+               /* for(int i = 0; i<4; i++)
+                {
+                    pyramid[i].depth = sqrtf(pow(view[i+8].x_3D + camera.posX, 2)+pow(view[i+8].y_3D + camera.posY, 2)+pow(view[i+8].z_3D + camera.posZ, 2));
+                    pyramid[i].x_2D = CONVERT_POS_X((pyramid[i].depth*view[i+8].x_3D)/(pyramid[i].depth+view[i+8].y_3D));
+                    pyramid[i].y_2D = CONVERT_POS_Y((pyramid[i].depth*view[i+8].z_3D*(-1))/(pyramid[i].depth+view[i+8].y_3D));
+                }*/
+            
+                // Draw cube
                 draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan1);
                 draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan2);
                 draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan3);
@@ -619,23 +700,30 @@ int main(int argc, char **argv)
                 draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan11);
                 draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan12);
                 
+                // Draw pyramid
+                draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &planP1);
+                draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &planP2);
+                draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &planP3);
+                draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &planP4);
+                
                 for(int i = 0; i<SCREEN_WIDTH; i++)
                 {
                     for(int j = 0; j<SCREEN_HEIGHT; j++)
                     {
-                        index = GET_INDEX(i,j);
+                        index = get_index(i,j);
                         SDL_SetRenderDrawColor(ren, canevas[index].color.r, canevas[index].color.g, canevas[index].color.b, 255);
                         SDL_RenderDrawPoint(ren, i, j);
 
-                        canevas[GET_INDEX(i,j)].color.r = 220;               // We have displayed the point. Clear it!
-                        canevas[GET_INDEX(i,j)].color.g = 220;               // We have displayed the point. Clear it!
-                        canevas[GET_INDEX(i,j)].color.b = 220;               // We have displayed the point. Clear it!
-                        canevas[GET_INDEX(i,j)].depth = MAX_DEPTH;
+                        canevas[get_index(i,j)].color.r = 220;               // We have displayed the point. Clear it!
+                        canevas[get_index(i,j)].color.g = 220;               // We have displayed the point. Clear it!
+                        canevas[get_index(i,j)].color.b = 220;               // We have displayed the point. Clear it!
+                        canevas[get_index(i,j)].depth = MAX_DEPTH;
                     }
                 }
                 for (int i = 0; i<8; i++)
                 {
-                    sprintf(msg_coord_pt[i], "X: %.1lf, Y: %.1lf, Z: %.1lf, D: %.1lf", view[i].x_3D, view[i].y_3D, view[i].z_3D, view[i].depth);
+                    //sprintf(msg_coord_pt[i], "X: %.1lf, Y: %.1lf, Z: %.1lf, D: %.1lf", model[i].x_3D, model[i].y_3D, model[i].z_3D, model[i].depth);
+                    sprintf(msg_coord_pt[i], "D: %.1lf", view[i].depth);
                     //sprintf(msg_coord_pt[i], "%lf", model[i].depth);
                     Surf_coord_pt[i] = TTF_RenderText_Solid(police, msg_coord_pt[i], black);
                     Rect_coord_pt[i].x =  view[i].x_2D;
