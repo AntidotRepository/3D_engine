@@ -356,7 +356,7 @@ int main(int argc, char **argv)
     
     camera camera;
     camera.posX = 0;
-    camera.posY = 1000;
+    camera.posY = 100;
     camera.posZ = 0;
     
     m3DPoint model[8];
@@ -364,37 +364,37 @@ int main(int argc, char **argv)
     m3DPoint view[12];
     
     // Cube
-    model[0].x_3D =  500;
-    model[0].y_3D =  500;
-    model[0].z_3D = -500;
+    model[0].x_3D =  50;
+    model[0].y_3D =  50;
+    model[0].z_3D = -50;
     
-    model[1].x_3D = -500;
-    model[1].y_3D =  500;
-    model[1].z_3D = -500;
+    model[1].x_3D = -50;
+    model[1].y_3D =  50;
+    model[1].z_3D = -50;
     
-    model[2].x_3D = -500;
-    model[2].y_3D = -500;
-    model[2].z_3D = -500;
+    model[2].x_3D = -50;
+    model[2].y_3D = -50;
+    model[2].z_3D = -50;
     
-    model[3].x_3D =  500;
-    model[3].y_3D = -500;
-    model[3].z_3D = -500;
+    model[3].x_3D =  50;
+    model[3].y_3D = -50;
+    model[3].z_3D = -50;
     
-    model[4].x_3D =  500;
-    model[4].y_3D =  500;
-    model[4].z_3D =  500;
+    model[4].x_3D =  50;
+    model[4].y_3D =  50;
+    model[4].z_3D =  50;
     
-    model[5].x_3D = -500;
-    model[5].y_3D =  500;
-    model[5].z_3D =  500;
+    model[5].x_3D = -50;
+    model[5].y_3D =  50;
+    model[5].z_3D =  50;
     
-    model[6].x_3D = -500;
-    model[6].y_3D = -500;
-    model[6].z_3D =  500;
+    model[6].x_3D = -50;
+    model[6].y_3D = -50;
+    model[6].z_3D =  50;
     
-    model[7].x_3D =  500;
-    model[7].y_3D = -500;
-    model[7].z_3D =  500;
+    model[7].x_3D =  50;
+    model[7].y_3D = -50;
+    model[7].z_3D =  50;
     
     // Pyramide
     pyramid[0].x_3D = 0;
@@ -603,16 +603,27 @@ int main(int argc, char **argv)
     }
     
     SDL_Surface *Surf_coord_pt[8];
+    SDL_Surface *Surf_frameRate;
     SDL_Rect Rect_coord_pt[8];
+    SDL_Rect Rect_frameRate;
     SDL_Texture *text_coord_pt[8];
+    SDL_Texture *text_frameRate;
     char msg_coord_pt[8][100] = {0};
+    char msg_frameRate[5] = {0};
+    
     for(int i  = 0; i<8; i++)
     {
         Surf_coord_pt[i] = TTF_RenderText_Blended(police, "", black);
-        Rect_coord_pt[i].w = 40;
-        Rect_coord_pt[i].h = 15;
+        Rect_coord_pt[i].w = 150;
+        Rect_coord_pt[i].h = 25;
         text_coord_pt[i] = SDL_CreateTextureFromSurface(ren, Surf_coord_pt[i]);
     }
+    
+    Surf_frameRate = TTF_RenderText_Blended(police, "", black);
+    Rect_frameRate.w = 30;
+    Rect_frameRate.h = 40;
+    Rect_frameRate.x = SCREEN_WIDTH - Rect_frameRate.w;
+    Rect_frameRate.y = SCREEN_HEIGHT - Rect_frameRate.h;
     
     angle = 1;
     while(!in.key[SDLK_ESCAPE] && !in.quit)
@@ -636,14 +647,12 @@ int main(int argc, char **argv)
         {
             if(Actual_time - Previous_time > 1000/FRAME_RATE)
             {
-                Previous_time = Actual_time;
-                
                 // Moving the cube
                 for(int i = 0; i<8; i++)
                 {
-                    //rotate(0, 0, 1, angle, &model[i]);
-                    //rotate(0, 1, 0, angle, &model[i]);
-                    //rotate(1, 0, 0, angle, &model[i]);
+                    rotate(0, 0, 1, angle, &model[i]);
+                    rotate(0, 1, 0, angle, &model[i]);
+                    rotate(1, 0, 0, angle, &model[i]);
                     
                    // translate(angle, angle, angle, &model[i]);
                     view[i] = model[i];
@@ -658,10 +667,9 @@ int main(int argc, char **argv)
                 // Moving the camera
                 for(int i = 0; i<8; i++)
                 {
-                    //view[i] = model[i];
                     translate(camera.posX, camera.posY, camera.posZ, &view[i]);
-                    rotate(0, 0, 1, camera.angleX, &view[i]);
-                    rotate(1, 0, 0, camera.angleY, &view[i]);
+//                    rotate(0, 0, 1, camera.angleX, &view[i]);
+//                    rotate(1, 0, 0, camera.angleY, &view[i]);
                 }
                 camera.angleX += (prevMouseX - in.mouseX)/MOUSE_SENSITIVITY;
                 camera.angleY += (prevMouseY - in.mouseY)/MOUSE_SENSITIVITY;
@@ -669,22 +677,22 @@ int main(int argc, char **argv)
                 // Projection of the cube on the screen
                 for(int i = 0; i<8; i++)
                 {
-                    model[i].depth = sqrtf(pow(view[i].x_3D + camera.posX, 2)+pow(view[i].y_3D + camera.posY, 2)+pow(view[i].z_3D + camera.posZ, 2));
+                    model[i].depth = sqrtf(pow(view[i].x_3D, 2)+pow(view[i].y_3D, 2)+pow(view[i].z_3D, 2)); // No need to take camera position into acount as it is at the center of the system.
                     //if(camera.posY-view[i+8].y_3D< 0)
                     //    model[i].depth *= -1;
                     //printf("%lf\n", model[i].depth);
-                    model[i].x_2D = CONVERT_POS_X((model[i].depth*view[i].x_3D)/(model[i].depth+view[i].y_3D));
-                    model[i].y_2D = CONVERT_POS_Y((model[i].depth*view[i].z_3D*(-1))/(model[i].depth+view[i].y_3D));
+                    model[i].x_2D = CONVERT_POS_X((model[i].depth*view[i].x_3D)/(model[i].depth+view[i].y_3D)*3);
+                    model[i].y_2D = CONVERT_POS_Y((model[i].depth*view[i].z_3D*(-1))/(model[i].depth+view[i].y_3D)*3);
 #warning obligé de mettre un coef multiplicateur pour avoir d'avantages l'impression d'être dans la scène
                 }
                 
                 // Projection of the pyramid on the screen
-               /* for(int i = 0; i<4; i++)
+                for(int i = 0; i<4; i++)
                 {
                     pyramid[i].depth = sqrtf(pow(view[i+8].x_3D + camera.posX, 2)+pow(view[i+8].y_3D + camera.posY, 2)+pow(view[i+8].z_3D + camera.posZ, 2));
                     pyramid[i].x_2D = CONVERT_POS_X((pyramid[i].depth*view[i+8].x_3D)/(pyramid[i].depth+view[i+8].y_3D));
                     pyramid[i].y_2D = CONVERT_POS_Y((pyramid[i].depth*view[i+8].z_3D*(-1))/(pyramid[i].depth+view[i+8].y_3D));
-                }*/
+                }
             
                 // Draw cube
                 draw2DTriangle((m3DPoint*)canevas, SCREEN_WIDTH, SCREEN_HEIGHT, &plan1);
@@ -720,12 +728,12 @@ int main(int argc, char **argv)
                         canevas[get_index(i,j)].depth = MAX_DEPTH;
                     }
                 }
-                for (int i = 0; i<8; i++)
+                for (int i = 0; i<8; i+=2)
                 {
-                    //sprintf(msg_coord_pt[i], "X: %.1lf, Y: %.1lf, Z: %.1lf, D: %.1lf", model[i].x_3D, model[i].y_3D, model[i].z_3D, model[i].depth);
-                    sprintf(msg_coord_pt[i], "D: %.1lf", view[i].depth);
+                    sprintf(msg_coord_pt[i], "X: %.1lf, Y: %.1lf, Z: %.1lf, D: %.1lf", model[i].x_3D, model[i].y_3D, model[i].z_3D, model[i].depth);
+                    //sprintf(msg_coord_pt[i], "D: %.1lf", view[i].depth);
                     //sprintf(msg_coord_pt[i], "%lf", model[i].depth);
-                    Surf_coord_pt[i] = TTF_RenderText_Solid(police, msg_coord_pt[i], black);
+                    Surf_coord_pt[i] = TTF_RenderText_Blended(police, msg_coord_pt[i], black);
                     Rect_coord_pt[i].x =  view[i].x_2D;
                     Rect_coord_pt[i].y =  view[i].y_2D;
                     text_coord_pt[i] = SDL_CreateTextureFromSurface(ren, Surf_coord_pt[i]);
@@ -733,6 +741,16 @@ int main(int argc, char **argv)
                     SDL_RenderCopy(ren, text_coord_pt[i], NULL, &Rect_coord_pt[i]);
                     SDL_DestroyTexture(text_coord_pt[i]);
                 }
+                
+                sprintf(msg_frameRate, "%d", 1000/(Actual_time-Previous_time));
+                Surf_frameRate = TTF_RenderText_Blended(police, msg_frameRate, black);
+                text_frameRate = SDL_CreateTextureFromSurface(ren, Surf_frameRate);
+                SDL_FreeSurface(Surf_frameRate);
+                SDL_RenderCopy(ren, text_frameRate, NULL, &Rect_frameRate);
+                SDL_DestroyTexture(text_frameRate);
+                
+                Previous_time = Actual_time;
+                
                 SDL_RenderPresent(ren);
                 SDL_Delay(1000/FRAME_RATE);
             }
