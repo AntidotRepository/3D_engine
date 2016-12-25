@@ -2,6 +2,21 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include <unistd.h>
+
+#define FRAME_RATE  1
+
+pthread_cond_t cond_timeout;
+pthread_mutex_t mut_timeout;
+
+static void *thread_timer(void *p_data)
+{
+    while(1)
+    {
+        usleep(1000000/FRAME_RATE);
+        pthread_cond_broadcast(&cond_timeout);
+    }
+}
 
 static void *thread_userEvent(void *p_data)
 {
@@ -15,7 +30,16 @@ static void *thread_3DWorld(void *p_data)
 {
     while(1)
     {
+        // We firstly lock the mutex
+        pthread_mutex_lock(&mut_timeout);
+        pthread_cond_wait(&cond_timeout, &mut_timeout);
         printf("thread 3D world\n");
+        // We do what we have to do
+        
+        // We unlock the mutex
+        pthread_mutex_unlock(&mut_timeout);
+        // We send the signal for the next step in the process
+        // pthread_cond_signal(...);
     }
 }
 
@@ -49,11 +73,15 @@ int main(int argc, char **argv)
     SDL_Event event;
     bool end;
     int8_t ret = 0;
+    pthread_t threadT_timer;
     pthread_t threadT_userEvent;
     pthread_t threadT_3DWorld;
     pthread_t threadT_3Dto2DWorld;
     pthread_t threadT_fillTriangles;
     pthread_t threadT_painter;
+    
+    pthread_mutex_init(&mut_timeout, NULL);
+    pthread_cond_init(&cond_timeout, NULL);
     
     // Initialisation de la SDL
     
@@ -75,16 +103,18 @@ int main(int argc, char **argv)
     }
     
     // Threads creation
+    // Creation of timer thread
+    ret = pthread_create(&threadT_timer, NULL, thread_timer, NULL);
     // Creation of user events thread
-    ret = pthread_create(&threadT_userEvent, NULL, thread_userEvent, NULL);
+    // ret = pthread_create(&threadT_userEvent, NULL, thread_userEvent, NULL);
     // Creation of 3D world thread
     ret = pthread_create(&threadT_3DWorld, NULL, thread_3DWorld, NULL);
     // Creation of 3D to 2D world thread
-    ret = pthread_create(&threadT_3Dto2DWorld, NULL, thread_3Dto2DWorld, NULL);
+    // ret = pthread_create(&threadT_3Dto2DWorld, NULL, thread_3Dto2DWorld, NULL);
     // Creation of fill triangles thread
-    ret = pthread_create(&threadT_fillTriangles, NULL, thread_fillTriangles, NULL);
+    // ret = pthread_create(&threadT_fillTriangles, NULL, thread_fillTriangles, NULL);
     // Creation of painter thread
-    ret = pthread_create(&threadT_painter, NULL, thread_painter, NULL);
+    // ret = pthread_create(&threadT_painter, NULL, thread_painter, NULL);
     
     if(ret == 0)
     {
