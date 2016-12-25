@@ -9,6 +9,9 @@
 pthread_cond_t cond_timeout;
 pthread_mutex_t mut_timeout;
 
+pthread_cond_t cond_3DWorldReady;
+pthread_mutex_t mut_3DWorldReady;
+
 static void *thread_timer(void *p_data)
 {
     while(1)
@@ -32,14 +35,15 @@ static void *thread_3DWorld(void *p_data)
     {
         // We firstly lock the mutex
         pthread_mutex_lock(&mut_timeout);
+        // We wait for the timer being over
         pthread_cond_wait(&cond_timeout, &mut_timeout);
         printf("thread 3D world\n");
         // We do what we have to do
         
         // We unlock the mutex
         pthread_mutex_unlock(&mut_timeout);
-        // We send the signal for the next step in the process
-        // pthread_cond_signal(...);
+        // We send the signal for the next step in the process: 3D to 2D world
+        pthread_cond_signal(&cond_3DWorldReady);
     }
 }
 
@@ -47,7 +51,17 @@ static void *thread_3Dto2DWorld(void *p_data)
 {
     while(1)
     {
+        // We firstly lock the mutex
+        pthread_mutex_lock(&mut_3DWorldReady);
+        // We wait for the 3D_world thread having finish its calculations
+        pthread_cond_wait(&cond_3DWorldReady, &mut_3DWorldReady);
         printf("thread 3D to 2D world\n");
+        // We do what we have to do
+        
+        // We unlock the mutex
+        pthread_mutex_unlock(&mut_3DWorldReady);
+        // We send the signal for the next step of the process: filling triangles
+        // pthread_cond_signal(...);
     }
 }
 
@@ -82,6 +96,8 @@ int main(int argc, char **argv)
     
     pthread_mutex_init(&mut_timeout, NULL);
     pthread_cond_init(&cond_timeout, NULL);
+    pthread_mutex_init(&mut_3DWorldReady, NULL);
+    pthread_cond_init(&cond_3DWorldReady, NULL);
     
     // Initialisation de la SDL
     
@@ -110,7 +126,7 @@ int main(int argc, char **argv)
     // Creation of 3D world thread
     ret = pthread_create(&threadT_3DWorld, NULL, thread_3DWorld, NULL);
     // Creation of 3D to 2D world thread
-    // ret = pthread_create(&threadT_3Dto2DWorld, NULL, thread_3Dto2DWorld, NULL);
+    ret = pthread_create(&threadT_3Dto2DWorld, NULL, thread_3Dto2DWorld, NULL);
     // Creation of fill triangles thread
     // ret = pthread_create(&threadT_fillTriangles, NULL, thread_fillTriangles, NULL);
     // Creation of painter thread
