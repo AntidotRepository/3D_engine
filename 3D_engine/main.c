@@ -5,17 +5,23 @@
 #include <unistd.h>
 #include <time.h>
 
-#define FRAME_RATE              60
-#define EVENT_REFRESH_RATE      20
-
-pthread_cond_t cond_3DWorldReady;
-pthread_mutex_t mut_3DWorldReady;
+#define FRAME_RATE              1
+#define EVENT_REFRESH_RATE      0
 
 pthread_mutex_t mut_refreshEvent;
 pthread_cond_t cond_refreshEvent;
 
 pthread_mutex_t mut_refresh3DWorld;
 pthread_cond_t cond_refresh3DWorld;
+
+pthread_cond_t cond_3DWorldReady;
+pthread_mutex_t mut_3DWorldReady;
+
+pthread_cond_t cond_2DWorldReady;
+pthread_mutex_t mut_2DWorldReady;
+
+pthread_cond_t cond_trianglesReadies;
+pthread_mutex_t mut_trianglesReadies;
 
 static Uint32 callback_refreshEvent(Uint32 interval, void *parametre)
 {
@@ -61,6 +67,7 @@ static void *thread_3DWorld(void *p_data)
         
         // We send the signal for the next step in the process: 3D to 2D world
         pthread_cond_signal(&cond_3DWorldReady);
+        // We unlock the mutex
         pthread_mutex_unlock(&mut_refresh3DWorld);
     }
 }
@@ -75,11 +82,11 @@ static void *thread_3Dto2DWorld(void *p_data)
         pthread_cond_wait(&cond_3DWorldReady, &mut_3DWorldReady);
         printf("thread 3D to 2D world\n");
         // We do what we have to do
-        
+        // ...
+        // We send the signal for the next step of the process: filling triangles
+        pthread_cond_signal(&cond_2DWorldReady);
         // We unlock the mutex
         pthread_mutex_unlock(&mut_3DWorldReady);
-        // We send the signal for the next step of the process: filling triangles
-        // pthread_cond_signal(...);
     }
 }
 
@@ -87,7 +94,17 @@ static void *thread_fillTriangles(void *p_data)
 {
     while(1)
     {
+        // We firstly lock the mutex
+        pthread_mutex_lock(&mut_2DWorldReady);
+        // We wait for the 3D to 2D world thread having finished its calculations
+        pthread_cond_wait(&cond_2DWorldReady, &mut_2DWorldReady);
         printf("thread fill triangle\n");
+        // We do what we have to do
+        // ...
+        // We send the signal for the next step of the process: paint
+        pthread_cond_signal(&cond_trianglesReadies);
+        // We unlock the mutex
+        pthread_mutex_unlock(&mut_2DWorldReady);
     }
 }
 
@@ -105,21 +122,26 @@ int main(int argc, char **argv)
     SDL_Event event;
     bool end;
     int8_t ret = 0;
-    pthread_t threadT_timer;
     pthread_t threadT_userEvent;
     pthread_t threadT_3DWorld;
     pthread_t threadT_3Dto2DWorld;
     pthread_t threadT_fillTriangles;
     pthread_t threadT_painter;
     
-    pthread_mutex_init(&mut_3DWorldReady, NULL);
-    pthread_cond_init(&cond_3DWorldReady, NULL);
-    
     pthread_mutex_init(&mut_refreshEvent, NULL);
     pthread_cond_init(&cond_refreshEvent, NULL);
     
     pthread_mutex_init(&mut_refresh3DWorld, NULL);
     pthread_cond_init(&cond_refresh3DWorld, NULL);
+    
+    pthread_mutex_init(&mut_3DWorldReady, NULL);
+    pthread_cond_init(&cond_3DWorldReady, NULL);
+    
+    pthread_mutex_init(&mut_2DWorldReady, NULL);
+    pthread_cond_init(&cond_2DWorldReady, NULL);
+    
+    pthread_mutex_init(&mut_trianglesReadies, NULL);
+    pthread_cond_init(&cond_trianglesReadies, NULL);
     
     
     // Initialisation de la SDL
@@ -152,7 +174,7 @@ int main(int argc, char **argv)
     // Creation of 3D to 2D world thread
     ret = pthread_create(&threadT_3Dto2DWorld, NULL, thread_3Dto2DWorld, NULL);
     // Creation of fill triangles thread
-    // ret = pthread_create(&threadT_fillTriangles, NULL, thread_fillTriangles, NULL);
+    ret = pthread_create(&threadT_fillTriangles, NULL, thread_fillTriangles, NULL);
     // Creation of painter thread
     // ret = pthread_create(&threadT_painter, NULL, thread_painter, NULL);
     
