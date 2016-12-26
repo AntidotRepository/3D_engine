@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5D8EA06E1D15D0B600B9341C /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 5D8EA06D1D15D0B600B9341C /* main.c */; };
+		5D10995D1E1127CD002C7D87 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 5D10995C1E1127CD002C7D87 /* main.c */; };
 		5D8EA0771D15D49900B9341C /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5D8EA0761D15D49900B9341C /* SDL2.framework */; };
 /* End PBXBuildFile section */
 
@@ -24,8 +24,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		5D10995C1E1127CD002C7D87 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = src/main.c; sourceTree = SOURCE_ROOT; };
 		5D8EA06A1D15D0B600B9341C /* 3D_engine */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = 3D_engine; sourceTree = BUILT_PRODUCTS_DIR; };
-		5D8EA06D1D15D0B600B9341C /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		5D8EA0761D15D49900B9341C /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = ../../../../../../Library/Frameworks/SDL2.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -61,7 +61,7 @@
 		5D8EA06C1D15D0B600B9341C /* 3D_engine */ = {
 			isa = PBXGroup;
 			children = (
-				5D8EA06D1D15D0B600B9341C /* main.c */,
+				5D10995C1E1127CD002C7D87 /* main.c */,
 			);
 			path = 3D_engine;
 			sourceTree = "<group>";
@@ -122,7 +122,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5D8EA06E1D15D0B600B9341C /* main.c in Sources */,
+				5D10995D1E1127CD002C7D87 /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -251,6 +251,7 @@
 				5D8EA0731D15D0B600B9341C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
