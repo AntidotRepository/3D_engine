@@ -5,8 +5,8 @@
 #include <unistd.h>
 #include <time.h>
 
-#define FRAME_RATE              1
-#define EVENT_REFRESH_RATE      0
+#define FRAME_RATE              60
+#define EVENT_REFRESH_RATE      60
 
 pthread_mutex_t mut_refreshEvent;
 pthread_cond_t cond_refreshEvent;
@@ -112,7 +112,17 @@ static void *thread_painter(void *p_data)
 {
     while(1)
     {
+        // We firstly lock the mutex
+        pthread_mutex_lock(&mut_trianglesReadies);
+        // We wait for the fillTriangles thread having finished its calculations
+        pthread_cond_wait(&cond_trianglesReadies, &mut_trianglesReadies);
         printf("thread painter\n");
+        // We do what we have to do
+        // ...
+        // It's the last step of the process (yet). No signal to send.
+        // pthread_cond_signal(...)
+        // We unlock the mutex
+        pthread_mutex_unlock(&mut_trianglesReadies);
     }
 }
 
@@ -176,7 +186,7 @@ int main(int argc, char **argv)
     // Creation of fill triangles thread
     ret = pthread_create(&threadT_fillTriangles, NULL, thread_fillTriangles, NULL);
     // Creation of painter thread
-    // ret = pthread_create(&threadT_painter, NULL, thread_painter, NULL);
+    ret = pthread_create(&threadT_painter, NULL, thread_painter, NULL);
     
     if(ret == 0)
     {
