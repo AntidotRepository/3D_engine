@@ -5,8 +5,8 @@
 #include <unistd.h>
 #include <time.h>
 
-#define FRAME_RATE              1
-#define EVENT_REFRESH_RATE      1
+#define FRAME_RATE              60
+#define EVENT_REFRESH_RATE      20
 
 pthread_cond_t cond_3DWorldReady;
 pthread_mutex_t mut_3DWorldReady;
@@ -14,44 +14,54 @@ pthread_mutex_t mut_3DWorldReady;
 pthread_mutex_t mut_refreshEvent;
 pthread_cond_t cond_refreshEvent;
 
+pthread_mutex_t mut_refresh3DWorld;
+pthread_cond_t cond_refresh3DWorld;
+
 static Uint32 callback_refreshEvent(Uint32 interval, void *parametre)
 {
-    printf("callback\n");
+    printf("callback refreshEvent\n");
    // pthread_mutex_lock(&mut_refreshEvent);
     pthread_cond_signal(&cond_refreshEvent);
     return interval;
 }
 
+static Uint32 callback_refresh3DWorld(Uint32 interval, void *parametre)
+{
+    printf("callback 3DWorld\n");
+    pthread_cond_signal(&cond_refresh3DWorld);
+    return interval;
+}
+
 static void *thread_userEvent(void *p_data)
 {
-    printf("thread userevent created\n");
     while(1)
     {
         // We firstly lock the mutex
         pthread_mutex_lock(&mut_refreshEvent);
         pthread_cond_wait(&cond_refreshEvent, &mut_refreshEvent);
-        printf("Refresh user event\n");
+        printf("thread user event\n");
+        // We do what we have to do here
+        // ...
+        // Place the event in a queue to be sure we handle everything
+        
         pthread_mutex_unlock(&mut_refreshEvent);
     }
 }
 
 static void *thread_3DWorld(void *p_data)
 {
-    time_t prev_time = 0;
-    time_t current_time = 0;
-    
     while(1)
     {
-        prev_time = current_time;
-        current_time = time(NULL);
-        if(current_time - prev_time >= 1/FRAME_RATE)
-        {
-            printf("thread 3D world\n");
-            // We do what we have to do
-            
-            // We send the signal for the next step in the process: 3D to 2D world
-            pthread_cond_signal(&cond_3DWorldReady);
-        }
+        pthread_mutex_lock(&mut_refresh3DWorld);
+        pthread_cond_wait(&cond_refresh3DWorld, &mut_refresh3DWorld);
+        printf("thread 3D world\n");
+        // We do what we have to do
+        // ...
+        // Do not place the result in a queue to not be late on rendering
+        
+        // We send the signal for the next step in the process: 3D to 2D world
+        pthread_cond_signal(&cond_3DWorldReady);
+        pthread_mutex_unlock(&mut_refresh3DWorld);
     }
 }
 
@@ -108,6 +118,9 @@ int main(int argc, char **argv)
     pthread_mutex_init(&mut_refreshEvent, NULL);
     pthread_cond_init(&cond_refreshEvent, NULL);
     
+    pthread_mutex_init(&mut_refresh3DWorld, NULL);
+    pthread_cond_init(&cond_refresh3DWorld, NULL);
+    
     
     // Initialisation de la SDL
     
@@ -127,8 +140,9 @@ int main(int argc, char **argv)
         SDL_Quit();
         return -1;
     }
-    uint32_t delay = 1000/EVENT_REFRESH_RATE;
-    SDL_AddTimer(delay, callback_refreshEvent, delay);
+    
+    SDL_AddTimer(1000/EVENT_REFRESH_RATE, callback_refreshEvent, NULL);
+    SDL_AddTimer(1000/FRAME_RATE, callback_refresh3DWorld, NULL);
     
     // Threads creation
     // Creation of user events thread
