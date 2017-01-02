@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		5D10995D1E1127CD002C7D87 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 5D10995C1E1127CD002C7D87 /* main.c */; };
+		5D1099601E12A904002C7D87 /* event.c in Sources */ = {isa = PBXBuildFile; fileRef = 5D10995E1E12A904002C7D87 /* event.c */; };
 		5D8EA0771D15D49900B9341C /* SDL2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5D8EA0761D15D49900B9341C /* SDL2.framework */; };
 /* End PBXBuildFile section */
 
@@ -25,6 +26,8 @@
 
 /* Begin PBXFileReference section */
 		5D10995C1E1127CD002C7D87 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = src/main.c; sourceTree = SOURCE_ROOT; };
+		5D10995E1E12A904002C7D87 /* event.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = event.c; path = ../src/event.c; sourceTree = "<group>"; };
+		5D1099631E12A96C002C7D87 /* event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = event.h; path = inc/event.h; sourceTree = SOURCE_ROOT; };
 		5D8EA06A1D15D0B600B9341C /* 3D_engine */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = 3D_engine; sourceTree = BUILT_PRODUCTS_DIR; };
 		5D8EA0761D15D49900B9341C /* SDL2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL2.framework; path = ../../../../../../Library/Frameworks/SDL2.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -41,6 +44,23 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5D1099611E12A93C002C7D87 /* inc */ = {
+			isa = PBXGroup;
+			children = (
+				5D1099631E12A96C002C7D87 /* event.h */,
+			);
+			name = inc;
+			sourceTree = "<group>";
+		};
+		5D1099621E12A94A002C7D87 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				5D10995E1E12A904002C7D87 /* event.c */,
+				5D10995C1E1127CD002C7D87 /* main.c */,
+			);
+			name = src;
+			sourceTree = "<group>";
+		};
 		5D8EA0611D15D0B600B9341C = {
 			isa = PBXGroup;
 			children = (
@@ -61,7 +81,8 @@
 		5D8EA06C1D15D0B600B9341C /* 3D_engine */ = {
 			isa = PBXGroup;
 			children = (
-				5D10995C1E1127CD002C7D87 /* main.c */,
+				5D1099611E12A93C002C7D87 /* inc */,
+				5D1099621E12A94A002C7D87 /* src */,
 			);
 			path = 3D_engine;
 			sourceTree = "<group>";
@@ -122,6 +143,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5D1099601E12A904002C7D87 /* event.c in Sources */,
 				5D10995D1E1127CD002C7D87 /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
